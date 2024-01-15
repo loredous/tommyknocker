@@ -8,8 +8,13 @@
             "name": "Python: Knocker Service",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/knocker/knocker.py",
-            "args": ["-v"],
+            "program": "${workspaceFolder}/src/knocker/main.py",
+            "args": [
+                "-v",
+                "-c", "127.0.0.1",
+                "-p", "8000",
+                "-I", "9df8e819-dd8d-4f93-b5b4-7be10d0ceefb"
+            ],
             "cwd": "${workspaceFolder}/src",
             "console": "integratedTerminal",
             "justMyCode": true
