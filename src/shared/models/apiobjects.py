@@ -4,6 +4,7 @@ from typing import Dict, List, Optional
 from uuid import UUID
 
 from shared.models.objects import MonitorType, ResultType
+from shared.models.enums import ComponentType, TestStatus
 
 ## Knock Objects
 
@@ -11,10 +12,13 @@ from shared.models.objects import MonitorType, ResultType
 class UpdatedKnocker:
     name: Optional[str]
     description: Optional[str]
-    id: UUID
 
 @dataclass
-class NewKnock:
+class NewKnocker(UpdatedKnocker):
+    pass
+
+@dataclass
+class UpdatedKnock:
     name: str
     description: Optional[str]
     runner_id: UUID
@@ -22,13 +26,8 @@ class NewKnock:
     result_ids: Optional[List[UUID]]
 
 @dataclass
-class UpdatedKnock:
-    id: UUID
-    name: Optional[str]
-    description: Optional[str]
-    runner_id: Optional[UUID]
-    command: Optional[str]
-    result_ids: Optional[List[UUID]]
+class NewKnock(UpdatedKnock):
+    pass
 
 @dataclass
 class NewRunner:
@@ -39,7 +38,6 @@ class NewRunner:
 
 @dataclass
 class UpdatedRunner:
-    id: UUID
     name: Optional[str]
     description: Optional[str]
     image_name: Optional[str]
@@ -52,8 +50,7 @@ class NewResult:
 
 @dataclass
 class UpdatedResult:
-    id: UUID
-    value: Optional[str]
+    value: str
 
 ## Response Objects
     
@@ -65,7 +62,6 @@ class NewMonitor:
 
 @dataclass
 class UpdatedMonitor:
-    id: UUID
     name: Optional[str]
     description: Optional[str]
 
@@ -78,7 +74,6 @@ class NewResponse:
 
 @dataclass
 class UpdatedResponse:
-    id: UUID
     name: Optional[str]
     description: Optional[str]
     monitor_id: Optional[UUID]
@@ -92,7 +87,6 @@ class NewResponseExpectation:
 
 @dataclass
 class UpdatedResponseExpectation:
-    id: UUID
     expected: Optional[bool]
     timeout: Optional[int]
 
@@ -108,12 +102,27 @@ class NewTestConfiguration:
 
 @dataclass
 class UpdatedTestConfiguration:
-    id: UUID
     name: Optional[str]
     description: Optional[str]
     runner_id: Optional[UUID]
     knock_ids: Optional[List[UUID]]
     response_expectation_ids: Optional[List[UUID]]
+
+@dataclass
+class NewTestComponentStatus:
+    component_id: UUID
+    component_type: ComponentType
+    status: TestStatus
+
+@dataclass
+class UpdatedTestComponentStatus:
+    status: TestStatus
+
+@dataclass
+class NewTest:
+    configuration_id: UUID
+    knocker_id: UUID
+
 
 @dataclass
 class NewTestSuite:
@@ -123,7 +132,6 @@ class NewTestSuite:
 
 @dataclass
 class UpdatedTestSuite:
-    id: UUID
     name: Optional[str]
     description: Optional[str]
     test_configuration_ids: Optional[List[UUID]]
