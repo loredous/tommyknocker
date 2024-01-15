@@ -1,20 +1,31 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict, field
 import datetime
 from enum import Enum
-from typing import Dict, List, Union
-from uuid import UUID
+from typing import Dict, List, Optional, Union
+from uuid import UUID, uuid4
 from shared.models.dbobjects import DBKnock, DBKnocker, DBMonitor, DBResponse, DBResponseExpectation, DBResult, DBRunner, DBTest, DBTestConfiguration, DBTestKnockStatus, DBTestResponseStatus
 
 from shared.models.enums import ComponentType, MonitorType, ResultType, TestStatus
 
+class Updateable(object):
+    def update(self, new):
+        for key, value in asdict(new).items():
+            if hasattr(self, key):
+                setattr(self, key, value)
+
+    def clone_with_updates(self, new):
+        clone = self.__class__(**asdict(self))
+        clone.update(new)
+        return clone
+
 ## Knock Objects
 
 @dataclass
-class Knocker:
+class Knocker(Updateable):
     name: str
-    description: str
-    id: UUID
-    last_seen: datetime.datetime
+    description: str = ""
+    id: UUID = uuid4()
+    last_seen: Optional[datetime.datetime] = None
 
     @classmethod
     def from_db(cls, db_knocker: DBKnocker):
@@ -26,13 +37,13 @@ class Knocker:
         )
 
 @dataclass
-class Knock:
-    id: UUID
+class Knock(Updateable):
     name: str
-    description: str
     runner_id: UUID
     command: str
-    result_ids: List[UUID]
+    description: str = ""
+    id: UUID = uuid4()
+    result_ids: List[UUID] = field(default_factory=list)
 
     @classmethod
     def from_db(cls, db_knock: DBKnock):
@@ -46,12 +57,12 @@ class Knock:
         )
 
 @dataclass
-class Runner:
+class Runner(Updateable):
     name: str
     description: str
-    id: UUID
     image_name: str
     image_tag: str
+    id: UUID = uuid4()
 
     @classmethod
     def from_db(cls, db_runner: DBRunner):
@@ -64,10 +75,10 @@ class Runner:
         )
 
 @dataclass
-class Result:
-    id: UUID
+class Result(Updateable):
     type: ResultType
     value: str
+    id: UUID = uuid4()
 
     @classmethod
     def from_db(cls, db_result: DBResult):
@@ -82,11 +93,11 @@ class Result:
 
 
 @dataclass
-class Monitor:
+class Monitor(Updateable):
     name: str
-    description: str
-    id: UUID
     type: MonitorType
+    description: str = ""
+    id: UUID = uuid4()
 
     @classmethod
     def from_db(cls, db_monitor: DBMonitor):
@@ -98,12 +109,12 @@ class Monitor:
         )
 
 @dataclass
-class Response:
+class Response(Updateable):
     name: str
-    description: str
-    id: UUID
     monitor_id: UUID
     monitor_parameters: Dict[str, str]
+    description: str = ""
+    id: UUID = uuid4()
 
     @classmethod
     def from_db(cls, db_response: DBResponse):
@@ -116,11 +127,11 @@ class Response:
         )
 
 @dataclass
-class ResponseExpectation:
-    id: UUID
+class ResponseExpectation(Updateable):
     response_id: UUID
     expected: bool
     timeout: int
+    id: UUID = uuid4()
 
     @classmethod
     def from_db(cls, db_response_expectation: DBResponseExpectation):
@@ -134,13 +145,13 @@ class ResponseExpectation:
 ## Test Objects
 
 @dataclass
-class TestConfiguration:
+class TestConfiguration(Updateable):
     name: str
-    description: str
-    id: UUID
     runner_id: UUID
-    knock_ids: List[UUID]
-    response_expectation_ids: List[UUID]
+    id: UUID = uuid4()
+    description: str = ""
+    knock_ids: List[UUID] = field(default_factory=list)
+    response_expectation_ids: List[UUID] = field(default_factory=list)
 
     @classmethod
     def from_db(cls, db_test_configuration: DBTestConfiguration):
@@ -154,12 +165,12 @@ class TestConfiguration:
         )
 
 @dataclass
-class TestComponentStatus:
-    id: UUID
+class TestComponentStatus(Updateable):
     component_id: UUID
     component_type: ComponentType
     status: TestStatus
-    updated: datetime.datetime
+    id: UUID = uuid4()
+    updated: Optional[datetime.datetime] = None
 
     @classmethod
     def from_db(cls, db_test_component_status: Union[DBTestKnockStatus, DBTestResponseStatus]):
@@ -182,14 +193,14 @@ class TestComponentStatus:
     
 
 @dataclass
-class Test:
-    id: UUID
+class Test(Updateable):
     configuration_id: UUID
     knocker_id: UUID
-    started: datetime.datetime
-    ended: datetime.datetime
-    status: TestStatus
-    component_status_ids: List[UUID]
+    id: UUID = uuid4()
+    started: Optional[datetime.datetime] = None
+    ended: Optional[datetime.datetime] = None
+    status: TestStatus = TestStatus.PENDING
+    component_status_ids: List[UUID] = field(default_factory=list)
 
     @classmethod
     def from_db(cls, db_test: DBTest):
@@ -204,11 +215,11 @@ class Test:
         )
     
 @dataclass
-class TestSuite:
-    id: UUID
+class TestSuite(Updateable):
     name: str
-    description: str
-    test_cofiguration_ids: List[UUID]
+    id: UUID = uuid4()
+    description: str = ""
+    test_cofiguration_ids: List[UUID] = field(default_factory=list)
 
     @classmethod
     def from_db(cls, db_test_suite):
