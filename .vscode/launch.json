@@ -13,7 +13,7 @@
                 "-v",
                 "-c", "127.0.0.1",
                 "-p", "8000",
-                "-I", "9df8e819-dd8d-4f93-b5b4-7be10d0ceefb"
+                "-I", "00000000-0000-0000-0000-000000000001"
             ],
             "cwd": "${workspaceFolder}/src",
             "console": "integratedTerminal",

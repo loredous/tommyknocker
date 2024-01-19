@@ -147,7 +147,6 @@ class ResponseExpectation(Updateable):
 @dataclass
 class TestConfiguration(Updateable):
     name: str
-    runner_id: UUID
     id: UUID = uuid4()
     description: str = ""
     knock_ids: List[UUID] = field(default_factory=list)
@@ -159,7 +158,6 @@ class TestConfiguration(Updateable):
             name=db_test_configuration.name,
             description=db_test_configuration.description,
             id=db_test_configuration.id,
-            runner_id=db_test_configuration.runner.id,
             knock_ids=[knock.id for knock in db_test_configuration.knocks],
             response_expectation_ids=[response_expectation.id for response_expectation in db_test_configuration.response_expectations]
         )

@@ -104,8 +104,6 @@ class DBTestConfiguration(Base):
     name: Mapped[str] = mapped_column(sqlalchemy.String)
     description: Mapped[Optional[str]] = mapped_column(sqlalchemy.String)
     id: Mapped[UUID] = mapped_column(sqlalchemy.UUID, primary_key=True)
-    runner_id: Mapped[UUID] = mapped_column(sqlalchemy.UUID, sqlalchemy.ForeignKey('runners.id'))
-    runner: Mapped["Runner"] = relationship("DBRunner")
     knocks: Mapped[List["Knock"]] = relationship("DBKnock", secondary="test_knocks")
     response_expectations: Mapped[List["ResponseExpectation"]] = relationship("DBResponseExpectation", secondary="test_response_expectations")
 

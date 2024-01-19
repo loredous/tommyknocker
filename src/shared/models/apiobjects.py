@@ -96,7 +96,6 @@ class UpdatedResponseExpectation:
 class NewTestConfiguration:
     name: str
     description: Optional[str]
-    runner_id: UUID
     knock_ids: Optional[List[UUID]]
     response_expectation_ids: Optional[List[UUID]]
 
@@ -104,7 +103,6 @@ class NewTestConfiguration:
 class UpdatedTestConfiguration:
     name: Optional[str]
     description: Optional[str]
-    runner_id: Optional[UUID]
     knock_ids: Optional[List[UUID]]
     response_expectation_ids: Optional[List[UUID]]
 
