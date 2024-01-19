@@ -2,8 +2,12 @@ import asyncio
 from dataclasses import dataclass
 from logging import getLogger
 import sched
+from typing import Dict, List
+from uuid import UUID
 
 import requests
+
+from shared.models.objects import Test, Knock
 
 
 @dataclass
@@ -20,6 +24,7 @@ class KnockerService:
     def __init__(self, config: KnockerConfig):
         self.config = config
         self.scheduler = sched.scheduler()
+        self.knocks: Dict[UUID, Knock] = {}
         self.logger = getLogger("KnockerService")
         self.logger.info("Initialized knocker service")
         self.logger.debug(f"Config: {self.config}")
@@ -38,8 +43,12 @@ class KnockerService:
                 self.logger.error(f"Failed to check in with controller: [{response.status_code}] {response.text}")
             else:
                 self.logger.debug(f"Successfully checked in with controller")
+                self.scheduler.enter(0,1, self.handle_tasks, (response.json(),))
         except Exception as e:
             self.logger.error(f"Failed to check in with controller: {e}")
         finally:
             self.scheduler.enter(self.config.interval, 1, self.checkin)
+        
+
+    def handle_tasks(self, tests: dict):
         

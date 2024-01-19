@@ -9,6 +9,7 @@ from pluggy import Result
 
 from shared.models.objects import Knock, Knocker, Runner, Monitor, ResponseExpectation, Test, TestComponentStatus, TestConfiguration, TestSuite
 from controller.errors import DuplicateException, NotFoundException
+from shared.models.enums import TestStatus
 
 class ControllerState(ABC):
     #region Knocker Management
@@ -232,6 +233,10 @@ class ControllerState(ABC):
     
     @abstractmethod
     def delete_test(self, id: UUID) -> None:
+        raise NotImplementedError
+    
+    @abstractmethod
+    def get_tests_by_knocker_id(self, knocker_id: UUID) -> List[Test]:
         raise NotImplementedError
     #endregion Test Management
 
@@ -660,6 +665,9 @@ class InMemoryState(ControllerState):
             self._tests.pop(id)
         else:
             raise NotFoundException(f"Test with id {id} not found")
+        
+    def get_tests_by_knocker_id(self, knocker_id: UUID) -> List[Test]:
+        return [test for test in self._tests.values() if test.knocker_id == knocker_id and test.status in [TestStatus.PENDING, TestStatus.RUNNING]]
         
     #endregion Test Management
 
