@@ -33,9 +33,10 @@ def delete_knocker(id: UUID) -> None:
     controller_state.delete_knocker(id)
 
 @v1APIRouter.post("/knockers/{id}/checkin", tags=["Knockers"])
-def knocker_checkin(id: UUID) -> None:
+def knocker_checkin(id: UUID) -> List[StateObjects.Test]:
     controller_state.knocker_checkin(id)
-
+    return controller_state.get_tests_by_knocker_id(id)
+    
 #endregion Knocker Management
     
 #region Knock Management

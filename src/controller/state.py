@@ -1,5 +1,4 @@
 from abc import ABC, abstractmethod
-from asyncio import Runner
 from datetime import datetime
 from typing import Dict, List
 from uuid import UUID
@@ -9,6 +8,7 @@ from pluggy import Result
 
 from shared.models.objects import Knock, Knocker, Runner, Monitor, ResponseExpectation, Test, TestComponentStatus, TestConfiguration, TestSuite
 from controller.errors import DuplicateException, NotFoundException
+from shared.models.enums import TestStatus
 
 class ControllerState(ABC):
     #region Knocker Management
@@ -232,6 +232,10 @@ class ControllerState(ABC):
     
     @abstractmethod
     def delete_test(self, id: UUID) -> None:
+        raise NotImplementedError
+    
+    @abstractmethod
+    def get_tests_by_knocker_id(self, knocker_id: UUID) -> List[Test]:
         raise NotImplementedError
     #endregion Test Management
 
@@ -535,8 +539,6 @@ class InMemoryState(ControllerState):
     #region TestConfiguration Management
     
     def validate_test_configuration_relationships(self, test_configuration: TestConfiguration) -> None:
-        if test_configuration.runner_id not in self._runners:
-            raise NotFoundException(f"Runner with id {test_configuration.runner_id} not found")
         for knock_id in test_configuration.knock_ids:
             if knock_id not in self._knocks:
                 raise NotFoundException(f"Knock with id {knock_id} not found")
@@ -661,6 +663,9 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"Test with id {id} not found")
         
+    def get_tests_by_knocker_id(self, knocker_id: UUID) -> List[Test]:
+        return [test for test in self._tests.values() if test.knocker_id == knocker_id and test.status in [TestStatus.PENDING, TestStatus.RUNNING]]
+        
     #endregion Test Management
 
     #region TestSuite Management
@@ -703,12 +708,24 @@ class InMemoryState(ControllerState):
             raise NotFoundException(f"TestSuite with id {id} not found")
         
     #endregion TestSuite Management
-        
+
+class SeededInMemoryState(InMemoryState):
+    def __init__(self):
+        super().__init__()
+        self.seed()
+
+    def seed(self):
+        knocker = self.create_knocker(Knocker(name="Test Knocker", description="A pre-seeded knocker for testing", last_seen=datetime.now(), id=UUID("00000000-0000-0000-0000-000000000001")))
+        runner = self.create_runner(Runner(name="Debian Test Runner", description="A runner for testing, based on the latest Debian image", image_name="debian", image_tag="latest"))
+        knock = self.create_knock(Knock(name="Test Knock", runner_id=runner.id, command="echo 'Hello World!'", description="A pre-seeded knock for testing"))
+        test_configuration = self.create_test_configuration(TestConfiguration(name="Test Configuration", description="A pre-seeded test configuration for testing", knock_ids=[knock.id]))
+        self.create_test(Test(configuration_id=test_configuration.id, knocker_id=knocker.id))
+
 class ControllerStateFactory:
     _state: ControllerState = None
 
     @classmethod
     def get_state(cls) -> ControllerState:
         if not cls._state:
-            cls._state = InMemoryState()
+            cls._state = SeededInMemoryState()
         return cls._state
