@@ -4,9 +4,9 @@ from typing import Dict, List
 from uuid import UUID
 
 from fastapi import Response
-from pluggy import Result
 
-from shared.models.objects import Knock, Knocker, Runner, Monitor, ResponseExpectation, Test, TestComponentStatus, TestConfiguration, TestSuite
+
+from shared.models.objects import Knock, Knocker, Runner, Monitor, ResponseExpectation, Test, TestComponentStatus, TestConfiguration, TestSuite, Result
 from controller.errors import DuplicateException, NotFoundException
 from shared.models.enums import TestStatus
 

@@ -1,5 +1,5 @@
 import asyncio
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 from logging import getLogger
 import sched
 from typing import Dict, List
@@ -7,8 +7,9 @@ from uuid import UUID
 
 import requests
 
-from shared.models.objects import Test, Knock, TestConfiguration, TestComponentStatus
+from shared.models.objects import Test, Knock, TestConfiguration, TestComponentStatus, Runner
 from shared.models.apiobjects import NewTestComponentStatus, UpdatedTestComponentStatus
+from knocker.knock import ActiveKnock
 
 
 @dataclass
@@ -70,6 +71,16 @@ class v1ControllerAPIInteractor:
             self.logger.debug(f"Successfully got knock by ID {knock_id}")
             return Knock(**response.json())
 
+    def get_runner_by_id(self, runner_id: UUID) -> Runner:
+        self.logger.info(f"Getting runner by ID {runner_id}")
+        response = self.send_get_request(f"runners/{runner_id}")
+        if response.status_code != 200:
+            self.logger.error(f"Failed to get runner by ID {runner_id}: [{response.status_code}] {response.text}")
+            return None
+        else:
+            self.logger.debug(f"Successfully got runner by ID {runner_id}")
+            return Runner(**response.json())
+
 class KnockerService:
     def __init__(self, config: KnockerConfig):
         self.config = config
@@ -83,7 +94,9 @@ class KnockerService:
     def run(self):
         self.logger.info("Running knocker service")
         self.checkin()
+        self.scheduler.enter(self.config.interval, 1, self.progress_active_knocks)
         self.scheduler.run()
+        
 
         
     def checkin(self):
@@ -110,5 +123,18 @@ class KnockerService:
                     if knock is None:
                         self.logger.error(f"Failed to get knock by ID {knock_id}")
                         continue
-                    self.knocks[knock_id] = knock
+                    runner = self._api_interactor.get_runner_by_id(knock.runner_id)
+                    self.knocks[knock_id] = ActiveKnock(knock=knock, runner=runner)
                     self.logger.debug(f"Added knock with ID {knock_id} to active state")
+
+    def progress_active_knocks(self):
+        try:
+            for knock_id, knock in self.knocks.items():
+                if not knock.current_state.final:
+                    knock.cycle()
+                else:
+                    self.logger.debug(f"Knock with ID {knock_id} is already complete")
+        finally:
+            self.scheduler.enter(self.config.interval, 1, self.progress_active_knocks)
+
+    

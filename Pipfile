@@ -9,6 +9,7 @@ uvicorn = "*"
 sqlalchemy = "*"
 requests = "*"
 python-statemachine = "*"
+docker = "*"
 
 [dev-packages]
 pytest = "*"
