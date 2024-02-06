@@ -9,7 +9,7 @@ def parse_arguments(args) -> Namespace:
     parser.add_argument("-v", "--verbose", action="store_true", help="Enable verbose logging")
     parser.add_argument("-c", "--controller", type=str, help="Hostname or IP address for the Tommyknocker controller API")
     parser.add_argument("-p", "--port", type=int, help="Port for the Tommyknocker controller API", default=443)
-    parser.add_argument("-i", "--interval", type=int, help="Interval in seconds between checkins with the Tommyknocker controller API", default=30)
+    parser.add_argument("-i", "--interval", type=int, help="Interval in seconds between checkins with the Tommyknocker controller API", default=10)
     parser.add_argument("-I", "--identity", type=str, help="Identity token for this knocker from the Tommyknocker controller API")
     return parser.parse_args(args)
 

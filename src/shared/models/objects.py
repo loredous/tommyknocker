@@ -1,11 +1,12 @@
 from dataclasses import dataclass, asdict, field
 import datetime
 from enum import Enum
+import re
 from typing import Dict, List, Optional, Union
 from uuid import UUID, uuid4
 from shared.models.dbobjects import DBKnock, DBKnocker, DBMonitor, DBResponse, DBResponseExpectation, DBResult, DBRunner, DBTest, DBTestConfiguration, DBTestKnockStatus, DBTestResponseStatus
 
-from shared.models.enums import ComponentType, MonitorType, ResultType, TestStatus
+from shared.models.enums import ComponentStatus, ComponentType, MonitorType, ResultType, TestStatus
 
 class Updateable(object):
     def update(self, new):
@@ -24,7 +25,7 @@ class Updateable(object):
 class Knocker(Updateable):
     name: str
     description: str = ""
-    id: UUID = uuid4()
+    id: UUID = field(default_factory=uuid4)
     last_seen: Optional[datetime.datetime] = None
 
     @classmethod
@@ -42,7 +43,7 @@ class Knock(Updateable):
     runner_id: UUID
     command: str
     description: str = ""
-    id: UUID = uuid4()
+    id: UUID = field(default_factory=uuid4)
     result_ids: List[UUID] = field(default_factory=list)
 
     @classmethod
@@ -62,7 +63,7 @@ class Runner(Updateable):
     description: str
     image_name: str
     image_tag: str
-    id: UUID = uuid4()
+    id: UUID = field(default_factory=uuid4)
 
     @classmethod
     def from_db(cls, db_runner: DBRunner):
@@ -78,7 +79,7 @@ class Runner(Updateable):
 class Result(Updateable):
     type: ResultType
     value: str
-    id: UUID = uuid4()
+    id: UUID = field(default_factory=uuid4)
 
     @classmethod
     def from_db(cls, db_result: DBResult):
@@ -87,6 +88,16 @@ class Result(Updateable):
             type=db_result.type,
             value=db_result.value
         )
+    
+    def check_result(self, exit_code: int = 0, output: str = "") -> bool:
+        if self.type == ResultType.EXIT_CODE:
+            return str(exit_code) == self.value
+        elif self.type == ResultType.PRESENT_IN_OUTPUT:
+            return self.value in output.decode()
+        elif self.type == ResultType.REGEX_MATCH_OUTPUT:
+            return bool(re.match(self.value, output.decode()))
+        else:
+            return False
 
 ## Response Objects
 
@@ -97,7 +108,7 @@ class Monitor(Updateable):
     name: str
     type: MonitorType
     description: str = ""
-    id: UUID = uuid4()
+    id: UUID = field(default_factory=uuid4)
 
     @classmethod
     def from_db(cls, db_monitor: DBMonitor):
@@ -114,7 +125,7 @@ class Response(Updateable):
     monitor_id: UUID
     monitor_parameters: Dict[str, str]
     description: str = ""
-    id: UUID = uuid4()
+    id: UUID = field(default_factory=uuid4)
 
     @classmethod
     def from_db(cls, db_response: DBResponse):
@@ -131,7 +142,7 @@ class ResponseExpectation(Updateable):
     response_id: UUID
     expected: bool
     timeout: int
-    id: UUID = uuid4()
+    id: UUID = field(default_factory=uuid4)
 
     @classmethod
     def from_db(cls, db_response_expectation: DBResponseExpectation):
@@ -147,7 +158,7 @@ class ResponseExpectation(Updateable):
 @dataclass
 class TestConfiguration(Updateable):
     name: str
-    id: UUID = uuid4()
+    id: UUID = field(default_factory=uuid4)
     description: str = ""
     knock_ids: List[UUID] = field(default_factory=list)
     response_expectation_ids: List[UUID] = field(default_factory=list)
@@ -166,8 +177,8 @@ class TestConfiguration(Updateable):
 class TestComponentStatus(Updateable):
     component_id: UUID
     component_type: ComponentType
-    status: TestStatus
-    id: UUID = uuid4()
+    status: ComponentStatus
+    id: UUID = field(default_factory=uuid4)
     updated: Optional[datetime.datetime] = None
 
     @classmethod
@@ -194,7 +205,7 @@ class TestComponentStatus(Updateable):
 class Test(Updateable):
     configuration_id: UUID
     knocker_id: UUID
-    id: UUID = uuid4()
+    id: UUID = field(default_factory=uuid4)
     started: Optional[datetime.datetime] = None
     ended: Optional[datetime.datetime] = None
     status: TestStatus = TestStatus.PENDING
@@ -215,7 +226,7 @@ class Test(Updateable):
 @dataclass
 class TestSuite(Updateable):
     name: str
-    id: UUID = uuid4()
+    id: UUID = field(default_factory=uuid4)
     description: str = ""
     test_cofiguration_ids: List[UUID] = field(default_factory=list)
 

@@ -2,7 +2,7 @@ import logging
 from typing import Any
 from statemachine import State, StateMachine
 import docker
-from shared.models.objects import Knock, Runner
+from shared.models.objects import Knock, Runner, Test
 
 
 class ActiveKnock(StateMachine):
@@ -20,13 +20,16 @@ class ActiveKnock(StateMachine):
     container = None
     
 
-    def __init__(self, knock: Knock, runner: Runner, state_field: str = "state", start_value: Any = None, rtc: bool = True, allow_event_without_transition: bool = False):
+    def __init__(self, knock: Knock, runner: Runner, test: Test, state_field: str = "state", start_value: Any = None, rtc: bool = True, allow_event_without_transition: bool = False):
         super().__init__(None, state_field, start_value, rtc, allow_event_without_transition)
         self.logger = logging.getLogger("ActiveKnock")
         self._docker_client = docker.from_env()
         self.knock = knock
+        self.test = test
         self.runner = runner
         self.state_message = ""
+        self.output = ""
+        self.exit_code = None
 
     def before_cycle(self, event: str, source: State, target: State, message: str = ""):
         self.logger.debug(f"Transitioning {self.knock.id} from {source.name} to {target.name} with message {message}")
@@ -56,6 +59,7 @@ class ActiveKnock(StateMachine):
         self.logger.info(f"Knock {self.knock.id} complete")
         self.state_message = f"Knock {self.knock.id} complete"
         result = self.container.wait()
-        status_code = result.pop("StatusCode")
-        stdout = self.container.logs(stdout=True, stderr=False)
+        self.exit_code = result.pop("StatusCode")
+        self.output = self.container.logs(stdout=True, stderr=False)
+        self.logger.debug(f"Knock {self.knock.id} exited with status code {self.exit_code} and output:\n {self.output}")
         self.container.remove()

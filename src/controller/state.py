@@ -8,7 +8,8 @@ from fastapi import Response
 
 from shared.models.objects import Knock, Knocker, Runner, Monitor, ResponseExpectation, Test, TestComponentStatus, TestConfiguration, TestSuite, Result
 from controller.errors import DuplicateException, NotFoundException
-from shared.models.enums import TestStatus
+from shared.models.apiobjects import UpdatedTestComponentStatus
+from shared.models.enums import ResultType, TestStatus
 
 class ControllerState(ABC):
     #region Knocker Management
@@ -232,6 +233,10 @@ class ControllerState(ABC):
     
     @abstractmethod
     def delete_test(self, id: UUID) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def add_test_component_status(self, test_id: UUID, component_status_id: UUID) -> None:
         raise NotImplementedError
     
     @abstractmethod
@@ -599,16 +604,16 @@ class InMemoryState(ControllerState):
     def create_test_component_status(self, test_component_status: TestComponentStatus) -> TestComponentStatus:
         if test_component_status.id in self._test_component_statuses:
             raise DuplicateException(f"TestComponentStatus with id {test_component_status.id} already exists")
+        test_component_status.updated = datetime.now()
         self.validate_test_component_status_relationships(test_component_status)
         self._test_component_statuses[test_component_status.id] = test_component_status
         return test_component_status
     
-    def update_test_component_status(self, test_component_status: TestComponentStatus) -> TestComponentStatus:
-        if test_component_status.id in self._test_component_statuses:
-            updated = self._test_component_statuses[test_component_status.id].clone_with_updates(test_component_status)
-            self.validate_test_component_status_relationships(updated)
-            self._test_component_statuses[test_component_status.id] = updated
-            return self._test_component_statuses[test_component_status.id]
+    def update_test_component_status(self, test_component_id: UUID, test_component_status: UpdatedTestComponentStatus) -> TestComponentStatus:
+        if test_component_id in self._test_component_statuses:
+            self._test_component_statuses[test_component_id].status = test_component_status.status
+            self._test_component_statuses[test_component_id].updated = datetime.now()
+            return self._test_component_statuses[test_component_id]
         else:
             raise NotFoundException(f"TestComponentStatus with id {test_component_status.id} not found")
         
@@ -657,6 +662,7 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"Test with id {test.id} not found")
         
+        
     def delete_test(self, id: UUID) -> None:
         if id in self._tests:
             self._tests.pop(id)
@@ -664,8 +670,14 @@ class InMemoryState(ControllerState):
             raise NotFoundException(f"Test with id {id} not found")
         
     def get_tests_by_knocker_id(self, knocker_id: UUID) -> List[Test]:
-        return [test for test in self._tests.values() if test.knocker_id == knocker_id and test.status in [TestStatus.PENDING, TestStatus.RUNNING]]
+        return [test for test in self._tests.values() if test.knocker_id == knocker_id]
         
+    def add_test_component_status(self, test_id: UUID, component_status_id: UUID) -> None:
+        if test_id in self._tests:
+            self._tests[test_id].component_status_ids.append(component_status_id)
+            return self._tests[test_id]
+        else:
+            raise NotFoundException(f"Test with id {test_id} not found")
     #endregion Test Management
 
     #region TestSuite Management
@@ -717,7 +729,9 @@ class SeededInMemoryState(InMemoryState):
     def seed(self):
         knocker = self.create_knocker(Knocker(name="Test Knocker", description="A pre-seeded knocker for testing", last_seen=datetime.now(), id=UUID("00000000-0000-0000-0000-000000000001")))
         runner = self.create_runner(Runner(name="Debian Test Runner", description="A runner for testing, based on the latest Debian image", image_name="debian", image_tag="latest"))
-        knock = self.create_knock(Knock(name="Test Knock", runner_id=runner.id, command="echo 'Hello World!'", description="A pre-seeded knock for testing"))
+        result_exit_code = self.create_result(Result(type=ResultType.EXIT_CODE, value="0"))
+        result_output = self.create_result(Result(type=ResultType.PRESENT_IN_OUTPUT, value="Hello World!"))
+        knock = self.create_knock(Knock(name="Test Knock", runner_id=runner.id, command="echo 'Hello World!'", description="A pre-seeded knock for testing", result_ids=[result_exit_code.id, result_output.id]))
         test_configuration = self.create_test_configuration(TestConfiguration(name="Test Configuration", description="A pre-seeded test configuration for testing", knock_ids=[knock.id]))
         self.create_test(Test(configuration_id=test_configuration.id, knocker_id=knocker.id))
 

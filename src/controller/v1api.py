@@ -1,11 +1,13 @@
 from dataclasses import asdict
+import datetime
 from typing import List
 from uuid import UUID
-from fastapi import APIRouter
+from fastapi import APIRouter, BackgroundTasks
 
 from controller.state import ControllerState, ControllerStateFactory
 import shared.models.objects as StateObjects
 import shared.models.apiobjects as APIObjects
+from shared.models.enums import ComponentStatus, TestStatus
 
 v1APIRouter = APIRouter(prefix="/api/v1")
 controller_state: ControllerState = ControllerStateFactory.get_state()
@@ -217,15 +219,18 @@ def get_test_component_status_by_id(id: UUID) -> StateObjects.TestComponentStatu
     return controller_state.get_test_component_status_by_id(id)
 
 @v1APIRouter.post("/test-component-statuses", tags=["TestComponentStatuses"])
-def create_test_component_status(test_component_status: APIObjects.NewTestComponentStatus) -> StateObjects.TestComponentStatus:
+def create_test_component_status(test_component_status: APIObjects.NewTestComponentStatus, background_tasks: BackgroundTasks) -> StateObjects.TestComponentStatus:
+    background_tasks.add_task(update_test_status)
     return controller_state.create_test_component_status(StateObjects.TestComponentStatus(**asdict(test_component_status)))
 
 @v1APIRouter.put("/test-component-statuses/{id}", tags=["TestComponentStatuses"])
-def update_test_component_status(id: UUID, test_component_status: APIObjects.UpdatedTestComponentStatus) -> StateObjects.TestComponentStatus:
+def update_test_component_status(id: UUID, test_component_status: APIObjects.UpdatedTestComponentStatus, background_tasks: BackgroundTasks) -> StateObjects.TestComponentStatus:
+    background_tasks.add_task(update_test_status)
     return controller_state.update_test_component_status(id, test_component_status)
 
 @v1APIRouter.delete("/test-component-statuses/{id}", tags=["TestComponentStatuses"])
-def delete_test_component_status(id: UUID) -> None:
+def delete_test_component_status(id: UUID, background_tasks: BackgroundTasks) -> None:
+    background_tasks.add_task(update_test_status)
     controller_state.delete_test_component_status(id)
 
 #endregion TestComponentStatus Management
@@ -247,6 +252,37 @@ def create_test(test: APIObjects.NewTest) -> StateObjects.Test:
 @v1APIRouter.delete("/tests/{id}", tags=["Tests"])
 def delete_test(id: UUID) -> None:
     controller_state.delete_test(id)
+
+@v1APIRouter.put("/tests/{id}/add_component_status/{status_id}", tags=["Tests"])
+def add_test_component_status(id: UUID, status_id: UUID) -> StateObjects.Test:
+    return controller_state.add_test_component_status(id, status_id)
+
+def update_test_status():
+    tests = controller_state.list_tests()
+    for test in tests:
+        config = controller_state.get_test_configuration_by_id(test.configuration_id)
+        tc_statuses = [controller_state.get_test_component_status_by_id(component_id) for component_id in test.component_status_ids]
+        final_status = None
+        if len(tc_statuses) == 0:
+            final_status = TestStatus.PENDING
+        elif len(tc_statuses) <= len(config.knock_ids):
+            final_status = TestStatus.KNOCKING
+        if len(tc_statuses) == len(config.knock_ids) + len(config.response_expectation_ids):
+            if all(tc_status.status == ComponentStatus.SUCCESS for tc_status in tc_statuses):
+                final_status = TestStatus.SUCCESS
+            elif any(tc_status.status == ComponentStatus.ERROR for tc_status in tc_statuses):
+                final_status = TestStatus.ERROR
+            elif any(tc_status.status == ComponentStatus.FAILURE for tc_status in tc_statuses):
+                final_status = TestStatus.FAILURE
+            else:
+                final_status = TestStatus.CHECKING
+        if final_status is not None:
+            if final_status != TestStatus.PENDING and test.started is None:
+                test.started = datetime.datetime.utcnow()
+            if final_status in [TestStatus.SUCCESS, TestStatus.FAILURE, TestStatus.ERROR] and test.ended is None:
+                test.ended = datetime.datetime.utcnow()
+            test.status = final_status
+            controller_state.update_test(test)
 
 #endregion Test Management
 

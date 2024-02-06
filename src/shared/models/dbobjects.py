@@ -4,7 +4,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 from typing import Dict, List, Optional
 from uuid import UUID
 
-from shared.models.enums import MonitorType, ResultType, TestStatus
+from shared.models.enums import MonitorType, ResultType, TestStatus, ComponentStatus
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from shared.models.objects import Knock, Knocker, Monitor, Response, ResponseExpectation, Result, Runner, TestComponentStatus, TestConfiguration
@@ -111,7 +111,7 @@ class DBTestKnockStatus(Base):
     __tablename__ = 'test_knock_statuses'
 
     id: Mapped[UUID] = mapped_column(sqlalchemy.UUID, primary_key=True)
-    status: Mapped[ResultType] = mapped_column(sqlalchemy.Enum(ResultType))
+    status: Mapped[ComponentStatus] = mapped_column(sqlalchemy.Enum(ComponentStatus))
     knock_id: Mapped[UUID] = mapped_column(sqlalchemy.UUID, sqlalchemy.ForeignKey('knocks.id'))
     knock: Mapped["Knock"] = relationship("DBKnock")
     updated: Mapped[datetime] = mapped_column(sqlalchemy.DateTime)
@@ -120,7 +120,7 @@ class DBTestResponseStatus(Base):
     __tablename__ = 'test_response_statuses'
 
     id: Mapped[UUID] = mapped_column(sqlalchemy.UUID, primary_key=True)
-    status: Mapped[ResultType] = mapped_column(sqlalchemy.Enum(ResultType))
+    status: Mapped[ComponentStatus] = mapped_column(sqlalchemy.Enum(ComponentStatus))
     response_id: Mapped[UUID] = mapped_column(sqlalchemy.UUID, sqlalchemy.ForeignKey('responses.id'))
     response: Mapped["Response"] = relationship("DBResponse")
     updated: Mapped[datetime] = mapped_column(sqlalchemy.DateTime)

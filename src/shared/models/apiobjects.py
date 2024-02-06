@@ -4,7 +4,7 @@ from typing import Dict, List, Optional
 from uuid import UUID
 
 from shared.models.objects import MonitorType, ResultType
-from shared.models.enums import ComponentType, TestStatus
+from shared.models.enums import ComponentStatus, ComponentType, TestStatus
 
 ## Knock Objects
 
@@ -110,17 +110,17 @@ class UpdatedTestConfiguration:
 class NewTestComponentStatus:
     component_id: UUID
     component_type: ComponentType
-    status: TestStatus
+    status: ComponentStatus
 
 @dataclass
 class UpdatedTestComponentStatus:
-    status: TestStatus
+    status: ComponentStatus
+    
 
 @dataclass
 class NewTest:
     configuration_id: UUID
     knocker_id: UUID
-
 
 @dataclass
 class NewTestSuite:
