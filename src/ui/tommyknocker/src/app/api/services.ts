@@ -1,0 +1,11 @@
+export { KnockersService } from './services/knockers.service';
+export { KnocksService } from './services/knocks.service';
+export { RunnersService } from './services/runners.service';
+export { ResultsService } from './services/results.service';
+export { MonitorsService } from './services/monitors.service';
+export { ResponsesService } from './services/responses.service';
+export { ResponseExpectationsService } from './services/response-expectations.service';
+export { TestConfigurationsService } from './services/test-configurations.service';
+export { TestComponentStatusesService } from './services/test-component-statuses.service';
+export { TestsService } from './services/tests.service';
+export { TestSuitesService } from './services/test-suites.service';

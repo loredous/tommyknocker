@@ -1,0 +1,32 @@
+<div class="main-container">
+<div class="alert alert-app-level"></div>
+<header class="header-6">
+  <div class="branding">
+    <a href="..." class="nav-link">
+      <cds-icon shape="shield-check"></cds-icon>
+      <span class="title">Tommyknocker</span>
+    </a>
+  </div>
+  <div class="header-actions">
+    <clr-dropdown>
+      <button class="nav-icon" clrDropdownTrigger aria-label="toggle settings menu">
+        <cds-icon shape="cog"></cds-icon>
+        <cds-icon shape="angle" direction="down"></cds-icon>
+      </button>
+      <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
+        <a href="..." clrDropdownItem>About</a>
+      </clr-dropdown-menu>
+    </clr-dropdown>
+  </div>
+</header>
+<nav class="subnav" [clr-nav-level]="1">
+  <ul class="nav">
+    <li class="nav-item">
+      <a class="nav-link active" href="javascript://">Dashboard</a>
+    </li>
+  </ul>
+</nav>
+<div class="content-container">
+  <div class="content-area"><app-dashboard></app-dashboard></div>
+</div>
+</div>
