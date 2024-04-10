@@ -217,7 +217,7 @@ class KnockerService:
 
     def update_active_state(self, tests: List[Test]):
         for test in tests:
-            if test.status > TestStatus.CHECKING:
+            if test.status >= TestStatus.CHECKING:
                 self.logger.debug(f"Test with ID {test.id} done knocking. Cleaning up knocks")
                 cleanup_targets = []
                 for knock_test_id in self.knocks:

@@ -59,11 +59,13 @@ class NewMonitor:
     name: str
     description: Optional[str]
     type: MonitorType
+    config: Optional[Dict[str, str]]
 
 @dataclass
 class UpdatedMonitor:
     name: Optional[str]
     description: Optional[str]
+    config: Optional[Dict[str, str]]
 
 @dataclass
 class NewResponse:

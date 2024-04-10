@@ -2,7 +2,7 @@ from dataclasses import dataclass, asdict, field
 import datetime
 from enum import Enum
 import re
-from typing import Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 from uuid import UUID, uuid4
 from shared.models.dbobjects import DBKnock, DBKnocker, DBMonitor, DBResponse, DBResponseExpectation, DBResult, DBRunner, DBTest, DBTestConfiguration, DBTestKnockStatus, DBTestResponseStatus
 
@@ -102,11 +102,11 @@ class Result(Updateable):
 ## Response Objects
 
 
-
 @dataclass
 class Monitor(Updateable):
     name: str
     type: MonitorType
+    config: Dict[str, Any] = {}
     description: str = ""
     id: UUID = field(default_factory=uuid4)
 
@@ -116,7 +116,8 @@ class Monitor(Updateable):
             name=db_monitor.name,
             description=db_monitor.description,
             id=db_monitor.id,
-            type=db_monitor.type
+            type=db_monitor.type,
+            config=db_monitor.config
         )
 
 @dataclass

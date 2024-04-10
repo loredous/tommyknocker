@@ -65,6 +65,7 @@ class DBMonitor(Base):
     description: Mapped[Optional[str]] = mapped_column(sqlalchemy.String)
     id: Mapped[UUID] = mapped_column(sqlalchemy.UUID, primary_key=True)
     type: Mapped[MonitorType] = mapped_column(sqlalchemy.Enum(MonitorType))
+    config: Mapped[Dict[str, str]] = mapped_column(sqlalchemy.JSON)
 
 class DBResponse(Base):
     __tablename__ = 'responses'
