@@ -189,7 +189,7 @@ class KnockerService:
     def __init__(self, config: KnockerConfig):
         self.config = config
         self.scheduler = sched.scheduler()
-        self.knocks: Dict[UUID, Knock] = {}
+        self.knocks: Dict[UUID, ActiveKnock] = {}
         self.logger = getLogger("KnockerService")
         self.logger.info("Initialized knocker service")
         self.logger.debug(f"Config: {self.config}")

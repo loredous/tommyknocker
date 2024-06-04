@@ -27,7 +27,7 @@ class MockMonitor(MonitorBase):
         
     def check_monitor_status(self) -> bool:
         # Mock monitor always returns True
-        return True
+        return self.monitor.config.get("response", True)
     
     def query_monitor(self, **kwargs):
 

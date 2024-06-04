@@ -28,6 +28,10 @@
                 "controller.controller:api",
                 "--reload"
             ],
+            "env": {
+                "seed_for_testing": "1",
+                "debug": "1"
+            },
             "jinja": true,
             "justMyCode": true,
             "cwd": "${workspaceFolder}/src"

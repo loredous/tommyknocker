@@ -106,7 +106,7 @@ class Result(Updateable):
 class Monitor(Updateable):
     name: str
     type: MonitorType
-    config: Dict[str, Any] = {}
+    config: Dict[str, Any] = field(default_factory=dict)
     description: str = ""
     id: UUID = field(default_factory=uuid4)
 
