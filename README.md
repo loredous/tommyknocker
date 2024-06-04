@@ -84,7 +84,7 @@
 ## About The Project
 
 
-Tommyknocker started from the idea to bring the long understood benefits of regression testing methods to the realm of infosec. In a traditional regression test, the fix for each reported bug or issue in a software product is accompanied by a small test that validates that the same issue does not occur again in the future. With Tommyknocker, each security control put in place can be accompanied by a test case, which can ensure that future changes do not impact the functioning anb/or reporting of that control. 
+Tommyknocker started from the idea to bring the long understood benefits of regression testing methods to the realm of infosec. In a traditional regression test, the fix for each reported bug or issue in a software product is accompanied by a small test that validates that the same issue does not occur again in the future. With Tommyknocker, each security control put in place can be accompanied by a test case, which can ensure that future changes do not impact the functioning and/or reporting of that control. 
 
 
 Most organizations will often avoid doing testing of security controls unless it is absolutely necessary for an event such as an audit or yearly review. This can easily lead to the organization having a false sense of security, as controls may be inactive or improperly configured for months or even years before the next event that requires a test. By automating the process of testing these controls, organizations can not only ensure that controls remain functional, they can reduce the manual effort required to produce evidence of controls for auditing purposes significantly!

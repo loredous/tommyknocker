@@ -7,8 +7,7 @@ class ResultType(int, Enum):
     REGEX_MATCH_OUTPUT = 3
 
 class MonitorType(int, Enum):
-    SPLUNK = 1
-    ELASTICSEARCH = 2
+    ELASTICSEARCH = 1
 
 class TestStatus(int, Enum):
     PENDING = 1

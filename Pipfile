@@ -10,6 +10,10 @@ sqlalchemy = "*"
 requests = "*"
 python-statemachine = "*"
 docker = "*"
+fastapi-restful = "*"
+fastapi-utils = "*"
+typing-inspect = "*"
+pydantic-settings = "*"
 
 [dev-packages]
 pytest = "*"

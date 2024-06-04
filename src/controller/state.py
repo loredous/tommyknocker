@@ -206,11 +206,15 @@ class ControllerState(ABC):
         raise NotImplementedError
     
     @abstractmethod
-    def update_test_component_status(self, test_component_status: TestComponentStatus) -> TestComponentStatus:
+    def update_test_component_status(self, test_component_id: UUID, test_component_status: UpdatedTestComponentStatus)  -> TestComponentStatus:
         raise NotImplementedError
     
     @abstractmethod
     def delete_test_component_status(self, id: UUID) -> None:
+        raise NotImplementedError
+    
+    @abstractmethod
+    def get_test_component_status_by_component_id(self, component_id: UUID) -> TestComponentStatus:
         raise NotImplementedError
     #endregion TestComponentStatus Management
 
@@ -225,6 +229,7 @@ class ControllerState(ABC):
     
     @abstractmethod
     def create_test(self, test: Test) -> Test:
+        
         raise NotImplementedError
     
     @abstractmethod
@@ -268,6 +273,7 @@ class ControllerState(ABC):
     
 class InMemoryState(ControllerState):
     def __init__(self):
+        super().__init__()
         self._knockers: Dict[UUID, Knocker] = {}
         self._knocks: Dict[UUID, Knock] = {}
         self._runners: Dict[UUID, Runner] = {}
@@ -623,6 +629,12 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"TestComponentStatus with id {id} not found")
         
+    def get_test_component_status_by_component_id(self, component_id: UUID) -> TestComponentStatus:
+        for test_component_status in self._test_component_statuses.values():
+            if test_component_status.component_id == component_id:
+                return test_component_status
+        raise NotFoundException(f"TestComponentStatus with component_id {component_id} not found")
+        
     #endregion TestComponentStatus Management
 
     #region Test Management
@@ -721,25 +733,11 @@ class InMemoryState(ControllerState):
         
     #endregion TestSuite Management
 
-class SeededInMemoryState(InMemoryState):
-    def __init__(self):
-        super().__init__()
-        self.seed()
-
-    def seed(self):
-        knocker = self.create_knocker(Knocker(name="Test Knocker", description="A pre-seeded knocker for testing", last_seen=datetime.now(), id=UUID("00000000-0000-0000-0000-000000000001")))
-        runner = self.create_runner(Runner(name="Debian Test Runner", description="A runner for testing, based on the latest Debian image", image_name="debian", image_tag="latest"))
-        result_exit_code = self.create_result(Result(type=ResultType.EXIT_CODE, value="0"))
-        result_output = self.create_result(Result(type=ResultType.PRESENT_IN_OUTPUT, value="Hello World!"))
-        knock = self.create_knock(Knock(name="Test Knock", runner_id=runner.id, command="echo 'Hello World!'", description="A pre-seeded knock for testing", result_ids=[result_exit_code.id, result_output.id]))
-        test_configuration = self.create_test_configuration(TestConfiguration(name="Test Configuration", description="A pre-seeded test configuration for testing", knock_ids=[knock.id]))
-        self.create_test(Test(configuration_id=test_configuration.id, knocker_id=knocker.id))
-
 class ControllerStateFactory:
     _state: ControllerState = None
 
     @classmethod
     def get_state(cls) -> ControllerState:
         if not cls._state:
-            cls._state = SeededInMemoryState()
+            cls._state = InMemoryState()
         return cls._state
