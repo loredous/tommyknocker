@@ -19,4 +19,9 @@ ClarityIcons.addIcons(lockIcon, cogIcon, copyToClipboardIcon, infoStandardIcon);
 })
 export class AppComponent {
   title = 'Tommyknocker';
+
+  toggleTheme() {
+    document.body.getAttribute('cds-theme') == 'dark' ? document.body.setAttribute('cds-theme', 'light') : document.body.setAttribute('cds-theme', 'dark');
+  }
+  
 }

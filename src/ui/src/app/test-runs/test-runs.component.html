@@ -1,0 +1,68 @@
+<button class="btn btn-outline" (click)="onAddTestRun()">Add Test Run</button>
+<button class="btn btn-outline" (click)="refreshData()">Refresh</button>
+
+<p cds-layout="vertical gap:lg" cds-text="headline">Pending Tests</p>
+
+<ng-template #no_pending>
+    <span class="label label-info">No Pending Tests</span><br>
+</ng-template>
+<div *ngIf="pending_tests.length > 0; else no_pending">
+        <div *ngFor="let test of pending_tests">
+            <div class="clr-row">
+            <saturated-test-card class="clr-col-3" [test_data]="test"></saturated-test-card>
+        </div>
+        </div>
+</div>
+
+<p cds-layout="vertical gap:lg" cds-text="headline">Running Tests</p>
+<ng-template #no_running>
+    <span class="label label-info">No Running Tests</span><br>
+</ng-template>
+
+<div *ngIf="running_tests.length > 0; else no_running">
+    <div class="clr-row">
+        <div *ngFor="let test of running_tests">
+                <saturated-test-card class="clr-col-3" [test_data]="test"></saturated-test-card>
+        </div>
+    </div>
+</div>
+
+<p cds-layout="vertical gap:lg" cds-text="headline">Completed Tests</p>
+<ng-template #no_completed>
+    <span class="label label-info">No Completed Tests</span><br>
+</ng-template>
+<div *ngIf="completed_tests.length > 0; else no_completed">
+    <div class="clr-row">
+        
+            <div *ngFor="let test of completed_tests">
+                <saturated-test-card class="clr-col-3" [test_data]="test"></saturated-test-card>
+            </div>
+
+    </div>
+</div>
+
+<clr-modal [(clrModalOpen)]="create_opened" [clrModalClosable]="false">
+    <h3 class="modal-title">Add New Test Run</h3>
+    <div class="modal-body">
+        <clr-select-container>
+            <label>Knocker</label>
+            <select clrSelect name="options" [(ngModel)]="create_test.knocker_id" required>
+              <option *ngFor="let knocker of knockers" value="{{knocker.id}}">{{knocker.name}}</option>
+            </select>
+          </clr-select-container>
+          <clr-select-container>
+            <label>Test Configuration</label>
+            <select clrSelect name="options" [(ngModel)]="create_test.configuration_id" required>
+                <option *ngFor="let config of configurations" value="{{config.id}}">{{ config.name }}</option>
+            </select>
+          </clr-select-container>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-danger" (click)="onCancelAddTestRun()">
+            Cancel
+        </button>
+      <button type="button" class="btn btn-primary" (click)="onSubmitAddTestRun()">
+        Submit
+      </button>
+    </div>
+  </clr-modal>

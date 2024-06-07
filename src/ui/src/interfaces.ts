@@ -74,14 +74,30 @@ export interface TestComponentStatus {
     updated: Date
 }
 
+export enum TestStatus {
+    PENDING = 1,
+    KNOCKING = 2,
+    CHECKING = 3,
+    SUCCESS = 4,
+    FAILURE = 5,
+    ERROR = 6
+}
+
 export interface Test {
     id: string,
     configuration_id: string,
     knocker_id: string,
     started: Date,
     ended: Date,
-    status: string,
+    status: TestStatus,
     component_status_ids: string[]
+}
+
+export interface SaturatedTest {
+    test: Test,
+    knocker: Knocker,
+    configuration: TestConfiguration,
+    component_statuses: TestComponentStatus[]
 }
 
 export interface TestSuite {

@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Knocker, Runner } from './interfaces';
+import { Knocker, Runner, TestStatus } from './interfaces';
 import { Observable, of } from 'rxjs';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
@@ -21,7 +21,7 @@ const api_base = 'http://localhost:4200/api/v1';
 
 export class BaseAPIService<T> implements ICrudApiService<T> {
 
-  constructor(private http: HttpClient) {}
+  constructor(protected http: HttpClient) {}
 
   api_path = ""
 
@@ -73,4 +73,55 @@ export class MonitorAPIService<Monitor> extends BaseAPIService<Monitor> {
 export class ResponseAPIService<Response> extends BaseAPIService<Response> {
   override api_path = '/responses';
 }
+@Injectable({
+  providedIn: 'root'
+})
+export class KnockAPIService<Knock> extends BaseAPIService<Knock> {
+  override api_path = '/knocks';
+}
+@Injectable({
+  providedIn: 'root'
+})
+export class ResultAPIService<Result> extends BaseAPIService<Result> {
+  override api_path = '/results';
+}
+@Injectable({
+  providedIn: 'root'
+})
+export class TestConfigurationAPIService<TestConfiguration> extends BaseAPIService<TestConfiguration> {
+  override api_path = '/test-configurations';
+}
+@Injectable({
+  providedIn: 'root'
+})
+export class TestSuiteAPIService<TestSuite> extends BaseAPIService<TestSuite> {
+  override api_path = '/test-suites';
+}
+@Injectable({
+  providedIn: 'root'
+})
+export class TestComponentStatusAPIService<TestComponentStatus> extends BaseAPIService<TestComponentStatus> {
+  override api_path = '/test-component-statuses';
 
+  getTestComponentStatusByTest(test_id: string): Observable<TestComponentStatus[]> {
+    return this.http.get<TestComponentStatus[]>(`${api_base}/${this.api_path}/by_test/${test_id}`);
+  }
+}
+@Injectable({
+  providedIn: 'root'
+})
+export class TestAPIService<Test> extends BaseAPIService<Test> {
+  override api_path = '/tests';
+
+  getTestsByStatus(status: TestStatus): Observable<Test[]> {
+    return this.http.get<Test[]>(`${api_base}/${this.api_path}/by_status/${status}`);
+  }
+
+  getRunningTests(): Observable<Test[]> {
+    return this.http.get<Test[]>(`${api_base}/${this.api_path}/running/`);
+  }
+
+  getCompletedTests(): Observable<Test[]> {
+    return this.http.get<Test[]>(`${api_base}/${this.api_path}/complete/`);
+  }
+}

@@ -58,7 +58,7 @@
       </clr-modal>
     
       <clr-modal [(clrModalOpen)]="create_opened" [clrModalClosable]="false">
-        <h3 class="modal-title">Create Knocker</h3>
+        <h3 class="modal-title">Create {{ management_type.name }}</h3>
         <div class="modal-body">
           <form clrForm>
             <div *ngFor="let column of management_type.columns">

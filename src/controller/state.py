@@ -634,6 +634,10 @@ class InMemoryState(ControllerState):
             if test_component_status.component_id == component_id:
                 return test_component_status
         raise NotFoundException(f"TestComponentStatus with component_id {component_id} not found")
+    
+    def get_test_component_statuses_by_test_id(self, test_id: UUID) -> List[TestComponentStatus]:
+        test = self.get_test_by_id(test_id)
+        return [self._test_component_statuses[component_status_id] for component_status_id in test.component_status_ids]
         
     #endregion TestComponentStatus Management
 
@@ -690,6 +694,15 @@ class InMemoryState(ControllerState):
             return self._tests[test_id]
         else:
             raise NotFoundException(f"Test with id {test_id} not found")
+        
+    def get_tests_by_status(self, status: TestStatus) -> List[Test]:
+        return [test for test in self._tests.values() if test.status == status]
+    
+    def get_running_tests(self) -> List[Test]:
+        return [test for test in self._tests.values() if test.status in (TestStatus.KNOCKING, TestStatus.CHECKING)]
+    
+    def get_completed_tests(self) -> List[Test]:
+        return [test for test in self._tests.values() if test.status in (TestStatus.SUCCESS, TestStatus.FAILURE, TestStatus.ERROR)]
     #endregion Test Management
 
     #region TestSuite Management

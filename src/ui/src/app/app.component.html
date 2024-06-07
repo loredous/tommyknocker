@@ -7,9 +7,17 @@
       </a>
     </div>
     <div class="header-actions">
-      <a href="javascript://" class="nav-link">
-        <cds-icon shape="cog"></cds-icon>
-      </a>
+      <clr-dropdown>
+        <button class="nav-icon" clrDropdownTrigger aria-label="toggle settings menu">
+          <cds-icon shape="cog"></cds-icon>
+          <cds-icon shape="angle" direction="down"></cds-icon>
+        </button>
+        <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
+          <a (click)="toggleTheme()" clrDropdownItem>Dark/Light</a>
+          <a href="..." clrDropdownItem>Preferences</a>
+          <a href="..." clrDropdownItem>Log out</a>
+        </clr-dropdown-menu>
+      </clr-dropdown>
     </div>
   </clr-header>
   <div class="content-container">
@@ -38,3 +46,4 @@
     </div>
   </div>
 </clr-main-container>
+
