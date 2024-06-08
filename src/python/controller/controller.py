@@ -35,9 +35,10 @@ logger = logging.getLogger(__name__)
 active_state_machines = ActiveStateMachinesFactory.get_active_state_machines()
 
 async def update_statemachines():
+    await asyncio.sleep(5)
     while True:
         logger.debug("Cycling state machines")
-        active_state_machines.cycle_state_machines()
+        await active_state_machines.cycle_state_machines()
         await asyncio.sleep(5)
 
 @asynccontextmanager

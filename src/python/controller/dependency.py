@@ -7,6 +7,7 @@ from fastapi import Depends
 from controller.statemachines import TestStateMachine
 from controller.state import ControllerState, ControllerStateFactory
 from shared.models.objects import Test
+import warnings
 
 class ActiveStateMachines:
     _active_state_machines: Dict[UUID, TestStateMachine] = {}
@@ -27,15 +28,16 @@ class ActiveStateMachines:
         self.logger.debug(f"Removing state machine for test {test_id}")
         self._active_state_machines.pop(test_id, None)
 
-    def cycle_state_machines(self) -> None:
+    async def cycle_state_machines(self) -> None:
         to_remove = []
         for test_id, state_machine in self._active_state_machines.items():
             self.logger.debug(f"Cycling state machine for test {test_id}")
             try:
-                state_machine.cycle()
+                await state_machine.cycle()
                 self.logger.debug(f"Cycled state machine for test {test_id} to {state_machine.current_state}")
-            except TransitionNotAllowed:
+            except TransitionNotAllowed as e:
                 self.logger.debug(f"Cycle not allowed for {test_id} in {state_machine.current_state}")
+                continue
             except Exception as ex:
                 self.logger.exception(f"Error cycling state machine for test {test_id}: {ex}")
             if state_machine.current_state.final:
