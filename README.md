@@ -69,6 +69,7 @@
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
+    <li><a href="#usage">Usage</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
@@ -105,7 +106,17 @@ Most organizations will often avoid doing testing of security controls unless it
 <!-- GETTING STARTED -->
 ## Getting Started
 
-Coming Soon!
+The easiest and fastest way to kick the tires is to run the all-in-one docker container. This container runs the controller, UI, and a single knocker, so that you can try out the service. The knocker service requires access to a Docker runtime, so you will need to forward your local docker socket as a volume.
+
+```sh
+docker run -p 80:4200 -v /var/run/docker.sock:/var/run/docker.sock -d ghcr.io/loredous/tommyknocker-aio:main
+```
+Once the container image downloads and executes, you should be able to navigate to `http://localhost` in a browser, and be presented with the Tommyknocker WebUI
+
+<div align="center">
+    <img src="images/webui.png" alt="Logo" width="1024">
+</div>
+
 
 ### Prerequisites
 
@@ -163,6 +174,14 @@ docker build . --target all-in-one -t tommyknocker-knocker:local
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
+
+<!-- USAGE EXAMPLES -->
+
+## Usage
+
+
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- ROADMAP -->
 ## Roadmap
