@@ -30,9 +30,9 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <!-- <a href="https://github.com/loredous/tommyknocker">
+  <a href="https://github.com/loredous/tommyknocker">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a> -->
+  </a>
 
 <h3 align="center">Tommyknocker</h3>
 
@@ -106,7 +106,17 @@ Most organizations will often avoid doing testing of security controls unless it
 <!-- GETTING STARTED -->
 ## Getting Started
 
-Coming Soon!
+The easiest and fastest way to kick the tires is to run the all-in-one docker container. This container runs the controller, UI, and a single knocker, so that you can try out the service. The knocker service requires access to a Docker runtime, so you will need to forward your local docker socket as a volume.
+
+```sh
+docker run -p 80:4200 -v /var/run/docker.sock:/var/run/docker.sock -d ghcr.io/loredous/tommyknocker-aio:main
+```
+Once the container image downloads and executes, you should be able to navigate to `http://localhost` in a browser, and be presented with the Tommyknocker WebUI
+
+<div align="center">
+    <img src="images/webui.png" alt="Logo" width="1024">
+</div>
+
 
 ### Prerequisites
 
@@ -121,8 +131,45 @@ All Python back-end dependencies are managed using Pipenv, and UI dependencies a
   ```
 
 ### Installation
+There are multiple options for installing and running the Tommyknocker service.
 
-Coming Soon!
+#### All-in-one Docker Container
+The easiest and fastest way to kick the tires is to run the all-in-one docker container. This container runs the controller, UI, and a single knocker, so that you can try out the service. The knocker service requires access to a Docker runtime, so you will need to forward your local docker socket as a volume.
+
+```sh
+docker run -p 80:4200 -v /var/run/docker.sock:/var/run/docker.sock -d ghcr.io/loredous/tommyknocker-aio:main
+```
+
+Once the container image downloads and executes, you should be able to navigate to `http://localhost` in a browser, and be presented with the Tommyknocker WebUI
+
+#### Separate Controller and Knocker containers
+To deploy the Controller container, just run the docker container
+
+```sh
+docker run -p 80:4200 -d ghcr.io/loredous/tommyknocker-controller:main
+```
+
+Once the controller is configured for one or more knockers, you can execute the knocker docker containers with the appropriate ID values
+
+```sh
+docker run -p 80:4200 -v /var/run/docker.sock:/var/run/docker.sock -d ghcr.io/loredous/tommyknocker-knocker:main -c <controller_address> -p <controller_port> -I <knocker_ID_value>
+```
+
+#### Building Containers Locally
+To build the docker container images locally, clone the git repository, and run the following commands from the root of the repository:
+
+**All-in-one**
+```sh
+docker build . --target all-in-one -t tommyknocker-aio:local
+```
+**Controller**
+```sh
+docker build . --target controller -t tommyknocker-controller:local
+```
+**Knocker**
+```sh
+docker build . --target all-in-one -t tommyknocker-knocker:local
+```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -132,17 +179,28 @@ Coming Soon!
 
 ## Usage
 
-Coming Soon!
+The Tommyknocker service is mainly configured through the WebUI, using the items in the "Test Management" and "Infrastructure" sections. The general workflow for starting out without any pre-seeded data would be:
+
+1. Deploy the Controller service as instructed in the <a href="#### Separate Controller and Knocker containers">installation</a> section.
+1. Create a new Knocker configuration and note the ID value.
+1. Deploy a Knocker as instructed in the <a href="#### Separate Controller and Knocker containers">installation</a> section, with the ID you just created. Knockers should be deployed to a docker runtime from which the knocks will be executed.
+1. Ensure that the knocker is properly checking in and communicating.
+1. Configure any desired Monitors through the webUI. Monitors are services that can be checked after a knock is complete to confirm that any expected alerting or logging is actually present.
+1. Create a Runner configuration for your first knock. The runner configuration controls what docker image is used to actually execute a knock.
+1. Create any desired Response configurations. A response configuration contains the actual data that is expected to be seen in a monitor after a knock occurs.
+1. Create an appropriate Knock and Result configuration. A knock specifies the commands to be run on the runner for a test. A Result is an expected output from the knock command itself (text output, exit code, etc).
+1. Create a Test Configuration that uses the Knock and Response you configured previously.
+1. On the Test Runs page, select "Add Test Run", and add a test run with the configuration you created, running on the knocker you deployed.
+1. You should be able to watch the test progress as it knocks, and checks for the appropriate responses.
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
 
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Basic Clarity WebUI
-- [ ] Dockerized deployment
+- [✅] Basic Clarity WebUI
+- [✅] Dockerized deployment
 - [ ] Ability to organize tests and test-suites by tags (Control IDs, CVE numbers, etc)
 
 See the [open issues](https://github.com/loredous/tommyknocker/issues) for a full list of proposed features (and known issues).
