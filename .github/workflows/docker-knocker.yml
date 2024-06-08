@@ -1,4 +1,4 @@
-name: Build All-in-one Docker image
+name: Build Knocker Docker image
 
 # This workflow uses actions that are not certified by GitHub.
 # They are provided by a third-party and are governed by
