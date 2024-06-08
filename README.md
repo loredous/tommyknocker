@@ -30,9 +30,9 @@
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
-  <!-- <a href="https://github.com/loredous/tommyknocker">
+  <a href="https://github.com/loredous/tommyknocker">
     <img src="images/logo.png" alt="Logo" width="80" height="80">
-  </a> -->
+  </a>
 
 <h3 align="center">Tommyknocker</h3>
 
@@ -69,7 +69,6 @@
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
-    <li><a href="#usage">Usage</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
@@ -121,18 +120,45 @@ All Python back-end dependencies are managed using Pipenv, and UI dependencies a
   ```
 
 ### Installation
+There are multiple options for installing and running the Tommyknocker service.
 
-Coming Soon!
+#### All-in-one Docker Container
+The easiest and fastest way to kick the tires is to run the all-in-one docker container. This container runs the controller, UI, and a single knocker, so that you can try out the service. The knocker service requires access to a Docker runtime, so you will need to forward your local docker socket as a volume.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+```sh
+docker run -p 80:4200 -v /var/run/docker.sock:/var/run/docker.sock -d ghcr.io/loredous/tommyknocker-aio:main
+```
 
+Once the container image downloads and executes, you should be able to navigate to `http://localhost` in a browser, and be presented with the Tommyknocker WebUI
 
+#### Separate Controller and Knocker containers
+To deploy the Controller container, just run the docker container
 
-<!-- USAGE EXAMPLES -->
+```sh
+docker run -p 80:4200 -d ghcr.io/loredous/tommyknocker-controller:main
+```
 
-## Usage
+Once the controller is configured for one or more knockers, you can execute the knocker docker containers with the appropriate ID values
 
-Coming Soon!
+```sh
+docker run -p 80:4200 -v /var/run/docker.sock:/var/run/docker.sock -d ghcr.io/loredous/tommyknocker-knocker:main -c <controller_address> -p <controller_port> -I <knocker_ID_value>
+```
+
+#### Building Containers Locally
+To build the docker container images locally, clone the git repository, and run the following commands from the root of the repository:
+
+**All-in-one**
+```sh
+docker build . --target all-in-one -t tommyknocker-aio:local
+```
+**Controller**
+```sh
+docker build . --target controller -t tommyknocker-controller:local
+```
+**Knocker**
+```sh
+docker build . --target all-in-one -t tommyknocker-knocker:local
+```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -141,8 +167,8 @@ Coming Soon!
 <!-- ROADMAP -->
 ## Roadmap
 
-- [ ] Basic Clarity WebUI
-- [ ] Dockerized deployment
+- [✅] Basic Clarity WebUI
+- [✅] Dockerized deployment
 - [ ] Ability to organize tests and test-suites by tags (Control IDs, CVE numbers, etc)
 
 See the [open issues](https://github.com/loredous/tommyknocker/issues) for a full list of proposed features (and known issues).

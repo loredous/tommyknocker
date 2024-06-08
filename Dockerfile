@@ -8,6 +8,7 @@ WORKDIR /app/python
 RUN pipenv install --deploy
 WORKDIR /app/ui
 RUN npm install -g @angular/cli
+RUN npm install
 WORKDIR /app
 CMD ["/usr/bin/bash", "/app/start_controller.sh"]
 
