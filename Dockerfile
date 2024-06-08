@@ -11,7 +11,7 @@ RUN npm install -g @angular/cli
 WORKDIR /app
 CMD ["/usr/bin/bash", "/app/start_controller.sh"]
 
-FROM all-in-one as all-in-one
+FROM controller as all-in-one
 ENV SEED_FOR_TESTING=1
 CMD ["/usr/bin/bash", "/app/start_aio.sh"]
 
