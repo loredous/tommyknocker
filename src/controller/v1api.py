@@ -207,6 +207,10 @@ def update_test_configuration(controller_state: ControllerStateDependency, id: U
 def delete_test_configuration(controller_state: ControllerStateDependency, id: UUID) -> None:
     controller_state.delete_test_configuration(id)
 
+@v1APIRouter.get("/test-configurations/{id}/runs", tags=["TestConfigurations"])
+def get_test_configuration_runs(controller_state: ControllerStateDependency, id: UUID, count: int = 5) -> List[StateObjects.Test]:
+    return controller_state.get_latest_runs_by_test_configuration_id(id, count)
+
 #endregion TestConfiguration Management
 
 #region TestComponentStatus Management
@@ -296,5 +300,13 @@ def update_test_suite(controller_state: ControllerStateDependency, id: UUID, tes
 @v1APIRouter.delete("/test-suites/{id}", tags=["TestSuites"])
 def delete_test_suite(controller_state: ControllerStateDependency, id: UUID) -> None:
     controller_state.delete_test_suite(id)
+
+@v1APIRouter.get("/test-suites/{id}/tests", tags=["TestSuites"])
+def get_all_tests_configurations_in_suite(controller_state: ControllerStateDependency, id: UUID) -> List[StateObjects.TestConfiguration]:
+    return controller_state.get_test_configurations_in_suite(id)
+
+@v1APIRouter.get("/test-suites/uncategorized/", tags=["TestSuites"])
+def get_uncategorized_test_configurations(controller_state: ControllerStateDependency) -> List[StateObjects.TestConfiguration]:
+    return controller_state.get_uncategorized_test_configurations()
 
 #endregion TestSuite Management

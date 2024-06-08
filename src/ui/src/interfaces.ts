@@ -106,3 +106,28 @@ export interface TestSuite {
     description: string,
     test_configuration_ids: string[],
 }
+
+export enum StatusValue {
+    HEALTHY = "HEALTHY",
+    INFO = "INFO",
+    WARNING = "WARNING",
+    ERROR = "ERROR",
+    UNKNOWN = "UNKNOWN"
+  }
+  
+export  interface TestConfigurationStatus {
+    config: TestConfiguration;
+    status : StatusValue;
+    runs : Test[];
+  }
+  
+export  interface TestSuiteStatus {
+    suite: TestSuite;
+    status : StatusValue;
+    test_configs : TestConfigurationStatus[];
+  }
+  
+export  interface StatusData {
+    test_suites : TestSuiteStatus[];
+    uncategorized_tests : TestSuiteStatus;
+  }

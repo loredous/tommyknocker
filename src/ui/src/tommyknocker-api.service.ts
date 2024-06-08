@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Knocker, Runner, TestStatus } from './interfaces';
+import { Knocker, Runner, Test, TestConfiguration, TestStatus } from './interfaces';
 import { Observable, of } from 'rxjs';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 
@@ -90,12 +90,24 @@ export class ResultAPIService<Result> extends BaseAPIService<Result> {
 })
 export class TestConfigurationAPIService<TestConfiguration> extends BaseAPIService<TestConfiguration> {
   override api_path = '/test-configurations';
+
+  getRecentTestsByConfiguration(test_configuration_id: string, count: number = 5): Observable<Test[]> {
+    return this.http.get<Test[]>(`${api_base}/${this.api_path}/${test_configuration_id}/runs?count=${count}`);
+  }
 }
 @Injectable({
   providedIn: 'root'
 })
 export class TestSuiteAPIService<TestSuite> extends BaseAPIService<TestSuite> {
   override api_path = '/test-suites';
+
+  getTestConfigurationsInSuite(test_suite_id: string): Observable<TestConfiguration[]> {
+    return this.http.get<TestConfiguration[]>(`${api_base}/${this.api_path}/${test_suite_id}/tests`);
+  }
+
+  getUncategorizedTestConfigurations(): Observable<TestConfiguration[]> {
+    return this.http.get<TestConfiguration[]>(`${api_base}/${this.api_path}/uncategorized/`);
+  }
 }
 @Injectable({
   providedIn: 'root'

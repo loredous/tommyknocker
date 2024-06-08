@@ -589,6 +589,14 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"TestConfiguration with id {id} not found")
         
+    def get_latest_runs_by_test_configuration_id(self, id: UUID, count: int):
+        tests = [test for test in self._tests.values() if test.configuration_id == id]
+        tests.sort(key=lambda x: x.ended, reverse=True)
+        if len(tests) > count:
+            return tests[:count]
+        else:
+            return tests
+        
     #endregion TestConfiguration Management
 
     #region TestComponentStatus Management
@@ -744,6 +752,11 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"TestSuite with id {id} not found")
         
+    def get_test_configurations_in_suite(self, suite_id: UUID) -> List[TestConfiguration]:
+        return [test for test in self._test_configurations.values() if test.id in self._test_suites[suite_id].test_configuration_ids]
+        
+    def get_uncategorized_test_configurations(self) -> List[TestConfiguration]:
+        return [test for test in self._test_configurations.values() if not any(test.id in test_suite.test_configuration_ids for test_suite in self._test_suites.values())]
     #endregion TestSuite Management
 
 class ControllerStateFactory:
