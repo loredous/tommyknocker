@@ -1,0 +1,22 @@
+<div class="card">
+    <div class="card-header">Test {{ test_data.test.id }}
+        <clr-tooltip>
+            <cds-icon clrTooltipTrigger shape="info-standard"></cds-icon>
+            <clr-tooltip-content [clrPosition]="'bottom-right'" [clrSize]="'lg'">
+                {{ test_data | json}}
+            </clr-tooltip-content>
+          </clr-tooltip>
+    </div>
+    <div class="card-block">
+      <div class="card-title">{{ TestStatus[test_data.test.status] }}</div>
+      <div class="card-text">
+        Knocker: {{ test_data.knocker.name }}<br>
+        Configuration: {{ test_data.configuration.name }}<br>
+        <div *ngIf="test_data.test.started != null; else not_started">Started: {{ test_data.test.started | date: 'medium' }}<br></div>
+        <ng-template #not_started>Not Started<br></ng-template>
+        <div *ngIf="test_data.test.ended != null;">Ended: {{ test_data.test.ended | date: 'medium' }}<br></div> 
+      </div>
+    </div>
+    <div class="card-footer">
+      <button class="btn btn-sm btn-link">Delete</button>
+</div>

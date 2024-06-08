@@ -589,6 +589,14 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"TestConfiguration with id {id} not found")
         
+    def get_latest_runs_by_test_configuration_id(self, id: UUID, count: int):
+        tests = [test for test in self._tests.values() if test.configuration_id == id]
+        tests.sort(key=lambda x: x.ended, reverse=True)
+        if len(tests) > count:
+            return tests[:count]
+        else:
+            return tests
+        
     #endregion TestConfiguration Management
 
     #region TestComponentStatus Management
@@ -634,6 +642,10 @@ class InMemoryState(ControllerState):
             if test_component_status.component_id == component_id:
                 return test_component_status
         raise NotFoundException(f"TestComponentStatus with component_id {component_id} not found")
+    
+    def get_test_component_statuses_by_test_id(self, test_id: UUID) -> List[TestComponentStatus]:
+        test = self.get_test_by_id(test_id)
+        return [self._test_component_statuses[component_status_id] for component_status_id in test.component_status_ids]
         
     #endregion TestComponentStatus Management
 
@@ -690,6 +702,15 @@ class InMemoryState(ControllerState):
             return self._tests[test_id]
         else:
             raise NotFoundException(f"Test with id {test_id} not found")
+        
+    def get_tests_by_status(self, status: TestStatus) -> List[Test]:
+        return [test for test in self._tests.values() if test.status == status]
+    
+    def get_running_tests(self) -> List[Test]:
+        return [test for test in self._tests.values() if test.status in (TestStatus.KNOCKING, TestStatus.CHECKING)]
+    
+    def get_completed_tests(self) -> List[Test]:
+        return [test for test in self._tests.values() if test.status in (TestStatus.SUCCESS, TestStatus.FAILURE, TestStatus.ERROR)]
     #endregion Test Management
 
     #region TestSuite Management
@@ -731,6 +752,11 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"TestSuite with id {id} not found")
         
+    def get_test_configurations_in_suite(self, suite_id: UUID) -> List[TestConfiguration]:
+        return [test for test in self._test_configurations.values() if test.id in self._test_suites[suite_id].test_configuration_ids]
+        
+    def get_uncategorized_test_configurations(self) -> List[TestConfiguration]:
+        return [test for test in self._test_configurations.values() if not any(test.id in test_suite.test_configuration_ids for test_suite in self._test_suites.values())]
     #endregion TestSuite Management
 
 class ControllerStateFactory:

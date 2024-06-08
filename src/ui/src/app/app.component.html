@@ -1,0 +1,49 @@
+<clr-main-container>
+  <clr-header>
+    <div class="branding">
+      <a href="javascript://" class="nav-link">
+        <cds-icon shape="lock"></cds-icon>
+        <span class="title">{{ title }}</span>
+      </a>
+    </div>
+    <div class="header-actions">
+      <clr-dropdown>
+        <button class="nav-icon" clrDropdownTrigger aria-label="toggle settings menu">
+          <cds-icon shape="cog"></cds-icon>
+          <cds-icon shape="angle" direction="down"></cds-icon>
+        </button>
+        <clr-dropdown-menu *clrIfOpen clrPosition="bottom-right">
+          <a (click)="toggleTheme()" clrDropdownItem>Dark/Light</a>
+          <a href="..." clrDropdownItem>Preferences</a>
+          <a href="..." clrDropdownItem>Log out</a>
+        </clr-dropdown-menu>
+      </clr-dropdown>
+    </div>
+  </clr-header>
+  <div class="content-container">
+    <clr-vertical-nav>
+      <a clrVerticalNavLink routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a clrVerticalNavLink routerLink="/test_runs" routerLinkActive="active">Test Runs</a>
+      <clr-vertical-nav-group routerLinkActive="active">Test Management
+        <clr-vertical-nav-group-children>
+          <a clrVerticalNavLink routerLink="/manage/test_suites" routerLinkActive="active">Test Suites</a>
+          <a clrVerticalNavLink routerLink="/manage/test_configurations" routerLinkActive="active">Test Configurations</a>
+          <a clrVerticalNavLink routerLink="/manage/knocks" routerLinkActive="active">Knocks</a>
+          <a clrVerticalNavLink routerLink="/manage/responses" routerLinkActive="active">Responses</a>
+          <a clrVerticalNavLink routerLink="/manage/runners" routerLinkActive="active">Runners</a>
+        </clr-vertical-nav-group-children>
+      </clr-vertical-nav-group>
+      
+      <clr-vertical-nav-group routerLinkActive="active">Infrastructure
+        <clr-vertical-nav-group-children>
+          <a clrVerticalNavLink routerLink="/manage/knockers" routerLinkActive="active">Knockers</a>
+          <a clrVerticalNavLink routerLink="/manage/monitors" routerLinkActive="active">Monitors</a>
+        </clr-vertical-nav-group-children>
+      </clr-vertical-nav-group>
+    </clr-vertical-nav>
+    <div class="content-area">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</clr-main-container>
+

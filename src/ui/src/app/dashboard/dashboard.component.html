@@ -1,0 +1,31 @@
+<clr-stack-view>
+    <clr-stack-header>System Status</clr-stack-header>
+  
+    <clr-stack-block [clrStackViewLevel]="1">
+      <clr-stack-label>Overall</clr-stack-label>
+      <clr-stack-content><app-status-indicator [status]="overall_status"></app-status-indicator></clr-stack-content>
+    </clr-stack-block>
+  
+    <clr-stack-block *ngFor="let test_suite of status.test_suites" [clrStackViewLevel]="1">
+      <clr-stack-label>{{ test_suite.suite.name }}</clr-stack-label>
+      <clr-stack-content><app-status-indicator [status]="test_suite.status"></app-status-indicator></clr-stack-content>
+      <clr-stack-block *ngFor="let test_config of test_suite.test_configs" [clrStackViewLevel]="2">
+        <clr-stack-label>{{ test_config.config.name }}</clr-stack-label>
+        <clr-stack-content><app-status-indicator [status]="test_config.status"></app-status-indicator></clr-stack-content>
+      </clr-stack-block>
+    </clr-stack-block>
+  
+    <clr-stack-block [clrStackViewLevel]="1">
+      <clr-stack-label>Uncategorized Tests</clr-stack-label>
+      <clr-stack-content><app-status-indicator [status]="status.uncategorized_tests.status"></app-status-indicator></clr-stack-content>
+      <clr-stack-block *ngFor="let test_config of status.uncategorized_tests.test_configs" [clrStackViewLevel]="2">
+        <clr-stack-label>{{ test_config.config.name }}</clr-stack-label>
+        <clr-stack-content>
+            <app-status-indicator [status]="test_config.status"></app-status-indicator>  
+            <span class="label">Recent Runs: 
+            <app-status-indicator *ngFor="let test of test_config.runs" [status]="test.status"></app-status-indicator>
+            </span>
+        </clr-stack-content>
+      </clr-stack-block>
+    </clr-stack-block>
+  </clr-stack-view>

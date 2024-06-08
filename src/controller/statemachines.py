@@ -19,7 +19,7 @@ class TestStateMachine(StateMachine):
 
     test: Test = None
 
-    expected_responses: List[ExpectedResponse] = []
+    expected_responses: List[ExpectedResponse]
 
     cycle = (pending.to(knocking, cond="picked_up") | knocking.to(checking, cond="knocking_complete") | checking.to(success, cond="check_successful"))
     failed = (checking.to(failure),)
@@ -28,6 +28,7 @@ class TestStateMachine(StateMachine):
     def __init__(self, test: Test, model: Any = None, state_field: str = "state", start_value: Any = None, rtc: bool = True, allow_event_without_transition: bool = False):
         super().__init__(model, state_field, start_value, rtc, allow_event_without_transition)
         self.logger = getLogger(__name__)
+        self.expected_responses = []
         self.test = test
         self.controller_state = ControllerStateFactory.get_state()
 
@@ -85,16 +86,21 @@ class TestStateMachine(StateMachine):
         return self.test.status == TestStatus.SUCCESS
     
     def check_responses(self):
+        component_statuses = self.controller_state.get_test_component_statuses_by_test_id(self.test.id)
         for expected_response in self.expected_responses:
-            component_status = self.controller_state.get_test_component_status_by_component_id(expected_response.expectation.response_id)
-            if component_status.status not in [ComponentStatus.FAILURE, ComponentStatus.SUCCESS, ComponentStatus.ERROR]:
-                status = UpdatedTestComponentStatus(status=ComponentStatus.ERROR)
-                try:
-                    if expected_response.check_response():
-                        status.status = ComponentStatus.SUCCESS
-                    elif expected_response.response.timeout < (datetime.datetime.utcnow() - self.test.started).seconds:
-                        status.status = ComponentStatus.FAILURE
-                except Exception as e:
-                    self.logger.exception("Exception occurred while checking response", e)
-                    status.status = ComponentStatus.ERROR
-                self.controller_state.update_test_component_status(component_status.id, status)
+            try:
+                component_status = [status for status in component_statuses if status.component_id == expected_response.expectation.response_id].pop()
+                if component_status.status not in [ComponentStatus.FAILURE, ComponentStatus.SUCCESS, ComponentStatus.ERROR]:
+                    status = UpdatedTestComponentStatus(status=ComponentStatus.ERROR)
+                    try:
+                        if expected_response.check_response():
+                            status.status = ComponentStatus.SUCCESS
+                        elif expected_response.response.timeout < (datetime.datetime.utcnow() - self.test.started).seconds:
+                            status.status = ComponentStatus.FAILURE
+                    except Exception as e:
+                        self.logger.exception("Exception occurred while checking response", e)
+                        status.status = ComponentStatus.ERROR
+                    self.controller_state.update_test_component_status(component_status.id, status)
+            except IndexError:
+                self.logger.error(f"Expected response {expected_response.response.id} not found in component statuses")
+                pass

@@ -174,6 +174,9 @@ class v1ControllerAPIInteractor:
         self.logger.info(f"Getting expected results for knock with ID {knock_id}")
         knock = self.get_knock_by_id(knock_id)
         expected_results = []
+        if knock is None:
+            self.logger.error(f"Failed to get knock by ID {knock_id}")
+            return []
         for result_id in knock.result_ids:
             response = self.get_result_by_id(result_id)
             if response is None:

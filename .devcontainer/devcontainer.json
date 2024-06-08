@@ -17,7 +17,7 @@
 			"nvmVersion": "latest"
 		},
 		"ghcr.io/devcontainers-contrib/features/angular-cli:2": {
-			"version": "latest"
+			"version": "17"
 		}
 	}
 

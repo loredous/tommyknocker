@@ -207,6 +207,10 @@ def update_test_configuration(controller_state: ControllerStateDependency, id: U
 def delete_test_configuration(controller_state: ControllerStateDependency, id: UUID) -> None:
     controller_state.delete_test_configuration(id)
 
+@v1APIRouter.get("/test-configurations/{id}/runs", tags=["TestConfigurations"])
+def get_test_configuration_runs(controller_state: ControllerStateDependency, id: UUID, count: int = 5) -> List[StateObjects.Test]:
+    return controller_state.get_latest_runs_by_test_configuration_id(id, count)
+
 #endregion TestConfiguration Management
 
 #region TestComponentStatus Management
@@ -230,6 +234,10 @@ def update_test_component_status(controller_state: ControllerStateDependency, id
 @v1APIRouter.delete("/test-component-statuses/{id}", tags=["TestComponentStatuses"])
 def delete_test_component_status(controller_state: ControllerStateDependency, id: UUID) -> None:
     controller_state.delete_test_component_status(id)
+
+@v1APIRouter.get("/test-component-statuses/by_test/{test_id}", tags=["TestComponentStatuses"])
+def get_test_component_statuses_by_test_id(controller_state: ControllerStateDependency, test_id: UUID) -> List[StateObjects.TestComponentStatus]:
+    return controller_state.get_test_component_statuses_by_test_id(test_id)
 
 #endregion TestComponentStatus Management
 
@@ -257,6 +265,18 @@ def delete_test(controller_state: ControllerStateDependency, active_state_machin
 @v1APIRouter.put("/tests/{id}/add_component_status/{status_id}", tags=["Tests"])
 def add_test_component_status(controller_state: ControllerStateDependency, id: UUID, status_id: UUID) -> StateObjects.Test:
     return controller_state.add_test_component_status(id, status_id)
+
+@v1APIRouter.get("/tests/by_status/{status}", tags=["Tests"])
+def get_tests_by_status(controller_state: ControllerStateDependency, status: TestStatus) -> List[StateObjects.Test]:
+    return controller_state.get_tests_by_status(status)
+
+@v1APIRouter.get("/tests/running/", tags=["Tests"])
+def get_running_tests(controller_state: ControllerStateDependency) -> List[StateObjects.Test]:
+    return controller_state.get_running_tests()
+
+@v1APIRouter.get("/tests/complete/", tags=["Tests"])
+def get_complete_tests(controller_state: ControllerStateDependency) -> List[StateObjects.Test]:
+    return controller_state.get_completed_tests()
 #endregion Test Management
 
 #region TestSuite Management
@@ -280,5 +300,13 @@ def update_test_suite(controller_state: ControllerStateDependency, id: UUID, tes
 @v1APIRouter.delete("/test-suites/{id}", tags=["TestSuites"])
 def delete_test_suite(controller_state: ControllerStateDependency, id: UUID) -> None:
     controller_state.delete_test_suite(id)
+
+@v1APIRouter.get("/test-suites/{id}/tests", tags=["TestSuites"])
+def get_all_tests_configurations_in_suite(controller_state: ControllerStateDependency, id: UUID) -> List[StateObjects.TestConfiguration]:
+    return controller_state.get_test_configurations_in_suite(id)
+
+@v1APIRouter.get("/test-suites/uncategorized/", tags=["TestSuites"])
+def get_uncategorized_test_configurations(controller_state: ControllerStateDependency) -> List[StateObjects.TestConfiguration]:
+    return controller_state.get_uncategorized_test_configurations()
 
 #endregion TestSuite Management

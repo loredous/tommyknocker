@@ -1,0 +1,77 @@
+
+<p cds-text="headline">Knocker Management 
+<clr-tooltip>
+    <cds-icon clrTooltipTrigger shape="info-standard"></cds-icon>
+    <clr-tooltip-content [clrPosition]="'bottom-right'" [clrSize]="'lg'">
+      Knockers are the service components that are responsible for managing and initiating the knock process.
+    </clr-tooltip-content>
+  </clr-tooltip>
+</p>
+<clr-datagrid>
+    <clr-dg-column>ID</clr-dg-column>
+    <clr-dg-column>Name</clr-dg-column>
+    <clr-dg-column>Description</clr-dg-column>
+    <clr-dg-column>Last Seen</clr-dg-column>
+  
+    <clr-dg-row *ngFor="let knocker of knockers">
+    <clr-dg-action-overflow>
+        <button class="action-item" (click)="onEdit(knocker)">Edit</button>
+        <button class="action-item" (click)="onDelete(knocker)">Delete</button>
+        </clr-dg-action-overflow>
+    <clr-dg-cell>{{ knocker.id }} <cds-icon shape="copy-to-clipboard" (click)="onCopy(knocker)"></cds-icon></clr-dg-cell>  
+      <clr-dg-cell>{{ knocker.name }}</clr-dg-cell>
+      <clr-dg-cell>{{ knocker.description }}</clr-dg-cell>
+      <clr-dg-cell>{{ knocker.last_seen}}</clr-dg-cell>
+    </clr-dg-row>
+  
+    <clr-dg-footer>{{ knockers.length }} knockers</clr-dg-footer>
+  </clr-datagrid>
+  <button class="btn btn-primary" (click)="onCreate()">New +</button>
+
+  <clr-modal [(clrModalOpen)]="edit_opened" [clrModalClosable]="false">
+    <h3 class="modal-title">Edit Knocker {{ active_knocker.name }}</h3>
+    <div class="modal-body">
+        <form clrForm>
+            <clr-input-container>
+              <label>Name</label>
+              <input clrInput placeholder="Name" name="name" [(ngModel)]="active_knocker.name" required />
+              <clr-control-error>This field is required!</clr-control-error>
+            </clr-input-container>
+            <clr-textarea-container>
+                <label>Description</label>
+                <textarea clrTextarea name="description" [(ngModel)]="active_knocker.description"></textarea>
+              </clr-textarea-container>
+          </form>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-danger" (click)="editCancelled()">
+        Cancel
+      </button>
+    <button type="submit" class="btn btn-primary" (click)="editSubmitted()">
+      Submit
+    </button>
+    </div>
+  </clr-modal>
+
+  <clr-modal [(clrModalOpen)]="create_opened" [clrModalClosable]="false">
+    <h3 class="modal-title">Create Knocker</h3>
+    <div class="modal-body">
+        <clr-input-container>
+            <label>Name</label>
+            <input clrInput placeholder="Name" name="name" [(ngModel)]="active_knocker.name" required />
+            <clr-control-error>This field is required!</clr-control-error>
+          </clr-input-container>
+          <clr-textarea-container>
+              <label>Description</label>
+              <textarea clrTextarea name="description" [(ngModel)]="active_knocker.description"></textarea>
+            </clr-textarea-container>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-danger" (click)="createCancelled()">
+        Cancel
+      </button>
+    <button type="submit" class="btn btn-primary" (click)="createSubmitted()">
+      Submit
+    </button>
+    </div>
+  </clr-modal>
