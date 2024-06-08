@@ -13,7 +13,7 @@ export interface ICrudApiService<T> {
   deleteItem(id: string): Observable<any>;
 }
 
-const api_base = 'http://localhost:4200/api/v1';
+const api_base = '/api/v1';
 
 @Injectable({
   providedIn: 'root'
