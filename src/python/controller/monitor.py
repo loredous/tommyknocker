@@ -2,6 +2,7 @@ from dataclasses import dataclass
 import logging
 from typing import List, Optional
 from shared.models.objects import Monitor, Response
+from shared.models.enums import MonitorType
 from abc import ABC, abstractmethod
 from elasticsearch import Elasticsearch
 
@@ -21,7 +22,7 @@ class MonitorBase(ABC):
 
 class MockMonitor(MonitorBase):
     def __init__(self, monitor: Monitor):
-        if monitor.type != "mock":
+        if monitor.type != MonitorType.MOCK:
             raise ValueError("Monitor type must be 'mock' to create MockMonitor")
         self.monitor = monitor
         
@@ -35,7 +36,7 @@ class MockMonitor(MonitorBase):
 
 class ElasticsearchMonitor(MonitorBase):
     def __init__(self, monitor: Monitor):
-        if monitor.type != "elasticsearch":
+        if monitor.type != MonitorType.ELASTICSEARCH:
             raise ValueError("Monitor type must be 'elasticsearch' to create ElasticsearchMonitor")
         self.monitor = monitor
         try:

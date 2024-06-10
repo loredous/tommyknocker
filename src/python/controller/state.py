@@ -785,7 +785,6 @@ class PersistentInMemoryState(InMemoryState):
         except:
             pass
         
-
 class ControllerStateFactory:
     _state: ControllerState = None
     _state_type: type = InMemoryState
