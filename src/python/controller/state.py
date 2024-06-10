@@ -2,6 +2,9 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Dict, List
 from uuid import UUID
+import asyncio
+import pickle
+from controller.settings import app_settings
 
 from fastapi import Response
 
@@ -352,14 +355,14 @@ class InMemoryState(ControllerState):
         self._knocks[knock.id] = knock
         return knock
     
-    def update_knock(self, knock: Knock) -> Knock:
-        if knock.id in self._knocks:
-            updated = self._knocks[knock.id].clone_with_updates(knock)
+    def update_knock(self, id: UUID, knock: Knock) -> Knock:
+        if id in self._knocks:
+            updated = self._knocks[id].clone_with_updates(knock)
             self.validate_knock_relationships(updated)
-            self._knocks[knock.id] = updated
-            return self._knocks[knock.id]
+            self._knocks[id] = updated
+            return self._knocks[id]
         else:
-            raise NotFoundException(f"Knock with id {knock.id} not found")
+            raise NotFoundException(f"Knock with id {id} not found")
     
     def delete_knock(self, id: UUID) -> None:
         if id in self._knocks:
@@ -387,12 +390,12 @@ class InMemoryState(ControllerState):
         self._runners[runner.id] = runner
         return runner
 
-    def update_runner(self, runner: Runner) -> Runner:
-        if runner.id in self._runners:
-            self._runners[runner.id] = runner
-            return self._runners[runner.id]
+    def update_runner(self, id: UUID, runner: Runner) -> Runner:
+        if id in self._runners:
+            self._runners[id] = runner
+            return self._runners[id]
         else:
-            raise NotFoundException(f"Runner with id {runner.id} not found")
+            raise NotFoundException(f"Runner with id {id} not found")
 
     def delete_runner(self, id: UUID) -> None:
         if id in self._runners:
@@ -420,12 +423,12 @@ class InMemoryState(ControllerState):
         self._results[result.id] = result
         return result
 
-    def update_result(self, result: Result) -> Result:
-        if result.id in self._results:
-            self._results[result.id] = result
-            return self._results[result.id]
+    def update_result(self, id: UUID, result: Result) -> Result:
+        if id in self._results:
+            self._results[id] = result
+            return self._results[id]
         else:
-            raise NotFoundException(f"Result with id {result.id} not found")
+            raise NotFoundException(f"Result with id {id} not found")
 
     def delete_result(self, id: UUID) -> None:
         if id in self._results:
@@ -452,12 +455,12 @@ class InMemoryState(ControllerState):
         self._monitors[monitor.id] = monitor
         return monitor
 
-    def update_monitor(self, monitor: Monitor) -> Monitor:
-        if monitor.id in self._monitors:
-            self._monitors[monitor.id] = monitor
-            return self._monitors[monitor.id]
+    def update_monitor(self, id: UUID, monitor: Monitor) -> Monitor:
+        if id in self._monitors:
+            self._monitors[id] = monitor
+            return self._monitors[id]
         else:
-            raise NotFoundException(f"Monitor with id {monitor.id} not found")
+            raise NotFoundException(f"Monitor with id {id} not found")
 
     def delete_monitor(self, id: UUID) -> None:
         if id in self._monitors:
@@ -490,12 +493,12 @@ class InMemoryState(ControllerState):
         self._responses[response.id] = response
         return response
     
-    def update_response(self, response: Response) -> Response:
-        if response.id in self._responses:
-            updated = self._responses[response.id].clone_with_updates(response)
+    def update_response(self, id: UUID, response: Response) -> Response:
+        if id in self._responses:
+            updated = self._responses[id].clone_with_updates(response)
             self.validate_response_relationships(updated)
-            self._responses[response.id] = updated
-            return self._responses[response.id]
+            self._responses[id] = updated
+            return self._responses[id]
         else:
             raise NotFoundException(f"Response with id {response.id} not found")
     
@@ -530,14 +533,14 @@ class InMemoryState(ControllerState):
         self._response_expectations[response_expectation.id] = response_expectation
         return response_expectation
         
-    def update_response_expectation(self, response_expectation: ResponseExpectation) -> ResponseExpectation:
-        if response_expectation.id in self._response_expectations:
-            updated = self._response_expectations[response_expectation.id].clone_with_updates(response_expectation)
+    def update_response_expectation(self, id: UUID, response_expectation: ResponseExpectation) -> ResponseExpectation:
+        if id in self._response_expectations:
+            updated = self._response_expectations[id].clone_with_updates(response_expectation)
             self.validate_response_expectation_relationships(updated)
-            self._response_expectations[response_expectation.id] = updated
-            return self._response_expectations[response_expectation.id]
+            self._response_expectations[id] = updated
+            return self._response_expectations[id]
         else:
-            raise NotFoundException(f"ResponseExpectation with id {response_expectation.id} not found")
+            raise NotFoundException(f"ResponseExpectation with id {id} not found")
         
     def delete_response_expectation(self, id: UUID) -> None:
         if id in self._response_expectations:
@@ -574,14 +577,14 @@ class InMemoryState(ControllerState):
         self._test_configurations[test_configuration.id] = test_configuration
         return test_configuration
     
-    def update_test_configuration(self, test_configuration: TestConfiguration) -> TestConfiguration:
-        if test_configuration.id in self._test_configurations:
-            updated = self._test_configurations[test_configuration.id].clone_with_updates(test_configuration)
+    def update_test_configuration(self, id: UUID, test_configuration: TestConfiguration) -> TestConfiguration:
+        if id in self._test_configurations:
+            updated = self._test_configurations[id].clone_with_updates(test_configuration)
             self.validate_test_configuration_relationships(updated)
-            self._test_configurations[test_configuration.id] = updated
-            return self._test_configurations[test_configuration.id]
+            self._test_configurations[id] = updated
+            return self._test_configurations[id]
         else:
-            raise NotFoundException(f"TestConfiguration with id {test_configuration.id} not found")
+            raise NotFoundException(f"TestConfiguration with id {id} not found")
         
     def delete_test_configuration(self, id: UUID) -> None:
         if id in self._test_configurations:
@@ -677,14 +680,14 @@ class InMemoryState(ControllerState):
         self._tests[test.id] = test
         return test
     
-    def update_test(self, test: Test) -> Test:
-        if test.id in self._tests:
-            updated = self._tests[test.id].clone_with_updates(test)
+    def update_test(self, id: UUID, test: Test) -> Test:
+        if id in self._tests:
+            updated = self._tests[id].clone_with_updates(test)
             self.validate_test_relationships(updated)
-            self._tests[test.id] = updated
-            return self._tests[test.id]
+            self._tests[id] = updated
+            return self._tests[id]
         else:
-            raise NotFoundException(f"Test with id {test.id} not found")
+            raise NotFoundException(f"Test with id {id} not found")
         
         
     def delete_test(self, id: UUID) -> None:
@@ -737,14 +740,14 @@ class InMemoryState(ControllerState):
         self._test_suites[test_suite.id] = test_suite
         return test_suite
     
-    def update_test_suite(self, test_suite: TestSuite) -> TestSuite:
-        if test_suite.id in self._test_suites:
-            updated = self._test_suites[test_suite.id].clone_with_updates(test_suite)
+    def update_test_suite(self, id: UUID, test_suite: TestSuite) -> TestSuite:
+        if id in self._test_suites:
+            updated = self._test_suites[id].clone_with_updates(test_suite)
             self.validate_test_suite_relationships(updated)
-            self._test_suites[test_suite.id] = updated
-            return self._test_suites[test_suite.id]
+            self._test_suites[id] = updated
+            return self._test_suites[id]
         else:
-            raise NotFoundException(f"TestSuite with id {test_suite.id} not found")
+            raise NotFoundException(f"TestSuite with id {id} not found")
     
     def delete_test_suite(self, id: UUID) -> None:
         if id in self._test_suites:
@@ -759,11 +762,40 @@ class InMemoryState(ControllerState):
         return [test for test in self._test_configurations.values() if not any(test.id in test_suite.test_configuration_ids for test_suite in self._test_suites.values())]
     #endregion TestSuite Management
 
+class PersistentInMemoryState(InMemoryState):
+    def __init__(self):
+        super().__init__()
+        self.load()
+        asyncio.get_running_loop().create_task(self.ongoing_save())
+
+    async def ongoing_save(self):
+        while True:
+            await asyncio.sleep(10)
+            await self.save()
+
+    async def save(self):
+        with open(app_settings.state_file, "wb") as f:
+            pickle.dump(self, f)
+
+    def load(self):
+        try:
+            with open(app_settings.state_file, "rb") as f:
+                state = pickle.load(f)
+                self.__dict__.update(state.__dict__)
+        except:
+            pass
+        
+
 class ControllerStateFactory:
     _state: ControllerState = None
+    _state_type: type = InMemoryState
+
+    @classmethod
+    def set_state_type(cls, state_type: type):
+        cls._state_type = state_type
 
     @classmethod
     def get_state(cls) -> ControllerState:
         if not cls._state:
-            cls._state = InMemoryState()
+            cls._state = cls._state_type()
         return cls._state

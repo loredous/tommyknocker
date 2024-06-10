@@ -4,7 +4,7 @@ import logging
 from uuid import UUID
 from fastapi import FastAPI, APIRouter
 from fastapi.concurrency import asynccontextmanager
-from controller.state import ControllerStateFactory, ControllerState
+from controller.state import ControllerStateFactory, InMemoryState, PersistentInMemoryState
 from controller.v1api import v1APIRouter
 from shared.models.objects import Knocker, Monitor, ResponseExpectation, Runner, Result, ResultType, Knock, TestConfiguration, Test, TestConfiguration, ResultType, Response
 
@@ -44,13 +44,24 @@ async def update_statemachines():
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     update_task = asyncio.get_running_loop().create_task(update_statemachines())
-    if app_settings.seed_for_testing:
+    set_state_type(app_settings.state_type)
+    controller_state = ControllerStateFactory.get_state()
+    if controller_state.list_knockers == {} and app_settings.seed_for_testing:
         seed_data()
     yield
     update_task.cancel()
 
+def set_state_type(state_type: str):
+    match app_settings.state_type:
+        case "memory":
+            ControllerStateFactory.set_state_type(InMemoryState)
+        case "file":
+            ControllerStateFactory.set_state_type(PersistentInMemoryState)
+        case _:
+            ControllerStateFactory.set_state_type(InMemoryState)
+
 api = FastAPI(lifespan=lifespan)
-controller_state = ControllerStateFactory.get_state()
+
 
 api.include_router(v1APIRouter)
 

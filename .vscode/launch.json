@@ -16,7 +16,7 @@
             "name": "Python: Knocker Service",
             "type": "python",
             "request": "launch",
-            "program": "${workspaceFolder}/src/knocker/main.py",
+            "program": "${workspaceFolder}/src/python/knocker/main.py",
             "args": [
                 "-v",
                 "-c", "127.0.0.1",
@@ -37,12 +37,12 @@
                 "--reload"
             ],
             "env": {
-                "seed_for_testing": "1",
-                "debug": "1"
+                "debug": "1",
+                "state_type": "file"
             },
             "jinja": true,
             "justMyCode": true,
-            "cwd": "${workspaceFolder}/src"
+            "cwd": "${workspaceFolder}/src/python/"
         }
     ]
 }
