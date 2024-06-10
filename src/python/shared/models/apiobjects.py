@@ -1,47 +1,53 @@
-from dataclasses import dataclass
+from dataclasses import Field, dataclass, field
 from enum import Enum
 from typing import Dict, List, Optional
 from uuid import UUID
 
-from shared.models.objects import MonitorType, ResultType
+from shared.models.objects import MonitorType, ResultType, NotUpdated
 from shared.models.enums import ComponentStatus, ComponentType, TestStatus
 
 ## Knock Objects
 
 @dataclass
 class UpdatedKnocker:
-    name: Optional[str]
-    description: Optional[str]
+    name: Optional[str] = NotUpdated
+    description: Optional[str] = NotUpdated
 
 @dataclass
-class NewKnocker(UpdatedKnocker):
-    pass
+class NewKnocker:
+    name: str
+    description: Optional[str] = None
 
 @dataclass
 class UpdatedKnock:
-    name: str
-    description: Optional[str]
-    runner_id: UUID
-    command: str
-    result_ids: Optional[List[UUID]]
+    name: Optional[str] = NotUpdated
+    description: Optional[str] = NotUpdated
+    runner_id: Optional[UUID] = NotUpdated
+    command: Optional[str] = NotUpdated
+    result_ids: Optional[List[UUID]] = NotUpdated
 
 @dataclass
-class NewKnock(UpdatedKnock):
-    pass
+class NewKnock:
+    name: str
+    runner_id: UUID
+    command: str
+    description: Optional[str] = None
+    result_ids: Optional[List[UUID]] = None
+
 
 @dataclass
 class NewRunner:
     name: str
-    description: Optional[str]
     image_name: str
     image_tag: str
+    description: Optional[str] = None
 
 @dataclass
 class UpdatedRunner:
-    name: Optional[str]
-    description: Optional[str]
-    image_name: Optional[str]
-    image_tag: Optional[str]
+    name: Optional[str] = NotUpdated
+    description: Optional[str] = NotUpdated
+    image_name: Optional[str] = NotUpdated
+    image_tag: Optional[str] = NotUpdated
 
 @dataclass
 class NewResult:
@@ -57,29 +63,29 @@ class UpdatedResult:
 @dataclass
 class NewMonitor:
     name: str
-    description: Optional[str]
     type: MonitorType
-    config: Optional[Dict[str, str]]
+    description: Optional[str] = None
+    config: Optional[Dict[str, str]] = field(default_factory=dict)
 
 @dataclass
 class UpdatedMonitor:
-    name: Optional[str]
-    description: Optional[str]
-    config: Optional[Dict[str, str]]
+    name: Optional[str] = NotUpdated
+    description: Optional[str] = NotUpdated
+    config: Optional[Dict[str, str]] = NotUpdated
 
 @dataclass
 class NewResponse:
     name: str
-    description: Optional[str]
     monitor_id: UUID
-    monitor_parameters: Dict[str, str]
+    description: Optional[str] = None
+    monitor_parameters: Dict[str, str] = field(default_factory=dict)
 
 @dataclass
 class UpdatedResponse:
-    name: Optional[str]
-    description: Optional[str]
-    monitor_id: Optional[UUID]
-    monitor_parameters: Optional[Dict[str, str]]
+    name: Optional[str] = NotUpdated
+    description: Optional[str] = NotUpdated
+    monitor_id: Optional[UUID] = NotUpdated
+    monitor_parameters: Optional[Dict[str, str]] = NotUpdated
 
 @dataclass
 class NewResponseExpectation:
@@ -89,24 +95,24 @@ class NewResponseExpectation:
 
 @dataclass
 class UpdatedResponseExpectation:
-    expected: Optional[bool]
-    timeout: Optional[int]
+    expected: Optional[bool] = NotUpdated
+    timeout: Optional[int] = NotUpdated
 
 ## Test Objects
     
 @dataclass
 class NewTestConfiguration:
     name: str
-    description: Optional[str]
-    knock_ids: Optional[List[UUID]]
-    response_expectation_ids: Optional[List[UUID]]
+    description: Optional[str] = None
+    knock_ids: Optional[List[UUID]] = field(default_factory=list)
+    response_expectation_ids: Optional[List[UUID]] = field(default_factory=list)
 
 @dataclass
 class UpdatedTestConfiguration:
-    name: Optional[str]
-    description: Optional[str]
-    knock_ids: Optional[List[UUID]]
-    response_expectation_ids: Optional[List[UUID]]
+    name: Optional[str] = NotUpdated
+    description: Optional[str] = NotUpdated
+    knock_ids: Optional[List[UUID]] = NotUpdated
+    response_expectation_ids: Optional[List[UUID]] = NotUpdated
 
 @dataclass
 class NewTestComponentStatus:
@@ -125,13 +131,18 @@ class NewTest:
     knocker_id: UUID
 
 @dataclass
+class UpdatedTest:
+    configuration_id: Optional[UUID] = NotUpdated
+    knocker_id: Optional[UUID] = NotUpdated
+
+@dataclass
 class NewTestSuite:
     name: str
-    description: Optional[str]
-    test_configuration_ids: Optional[List[UUID]]
+    description: Optional[str] = NotUpdated
+    test_configuration_ids: Optional[List[UUID]] = field(default_factory=list)
 
 @dataclass
 class UpdatedTestSuite:
-    name: Optional[str]
-    description: Optional[str]
-    test_configuration_ids: Optional[List[UUID]]
+    name: Optional[str] = NotUpdated
+    description: Optional[str] = NotUpdated
+    test_configuration_ids: Optional[List[UUID]] = NotUpdated
