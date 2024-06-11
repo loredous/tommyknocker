@@ -46,7 +46,7 @@ async def lifespan(app: FastAPI):
     update_task = asyncio.get_running_loop().create_task(update_statemachines())
     set_state_type(app_settings.state_type)
     controller_state = ControllerStateFactory.get_state()
-    if controller_state.list_knockers == {} and app_settings.seed_for_testing:
+    if controller_state.list_knockers() == [] and app_settings.seed_for_testing:
         seed_data()
     yield
     update_task.cancel()

@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import json
 import logging
 from typing import List, Optional
 from shared.models.objects import Monitor, Response
@@ -32,7 +33,7 @@ class MockMonitor(MonitorBase):
     
     def query_monitor(self, **kwargs):
 
-        return ["Mock monitor query result 1", "Mock monitor query result 2", "Mock monitor query result 3", "Mock monitor query result 4", "Mock monitor query result 5"]
+        return json.loads(self.monitor.config.get("query_return", "['Mock return data']"))
 
 class ElasticsearchMonitor(MonitorBase):
     def __init__(self, monitor: Monitor):

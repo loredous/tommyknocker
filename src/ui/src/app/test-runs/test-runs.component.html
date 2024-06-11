@@ -9,7 +9,7 @@
 <div *ngIf="pending_tests.length > 0; else no_pending">
         <div *ngFor="let test of pending_tests">
             <div class="clr-row">
-            <saturated-test-card class="clr-col-3" [test_data]="test"></saturated-test-card>
+            <saturated-test-card class="clr-col-3" [test_data]="test" (delete)="onDeleteTestRun($event)"></saturated-test-card>
         </div>
         </div>
 </div>
@@ -22,7 +22,7 @@
 <div *ngIf="running_tests.length > 0; else no_running">
     <div class="clr-row">
         <div *ngFor="let test of running_tests">
-                <saturated-test-card class="clr-col-3" [test_data]="test"></saturated-test-card>
+                <saturated-test-card class="clr-col-3" [test_data]="test" (delete)="onDeleteTestRun($event)"></saturated-test-card>
         </div>
     </div>
 </div>
@@ -35,7 +35,7 @@
     <div class="clr-row">
         
             <div *ngFor="let test of completed_tests">
-                <saturated-test-card class="clr-col-3" [test_data]="test"></saturated-test-card>
+                <saturated-test-card class="clr-col-3" [test_data]="test" (delete)="onDeleteTestRun($event)"></saturated-test-card>
             </div>
 
     </div>
@@ -46,13 +46,13 @@
     <div class="modal-body">
         <clr-select-container>
             <label>Knocker</label>
-            <select clrSelect name="options" [(ngModel)]="create_test.knocker_id" required>
+            <select clrSelect name="options" [(ngModel)]="knocker_id" required>
               <option *ngFor="let knocker of knockers" value="{{knocker.id}}">{{knocker.name}}</option>
             </select>
           </clr-select-container>
           <clr-select-container>
             <label>Test Configuration</label>
-            <select clrSelect name="options" [(ngModel)]="create_test.configuration_id" required>
+            <select clrSelect name="options" [(ngModel)]="configuration_id" required>
                 <option *ngFor="let config of configurations" value="{{config.id}}">{{ config.name }}</option>
             </select>
           </clr-select-container>

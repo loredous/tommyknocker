@@ -8,9 +8,12 @@ from controller.statemachines import TestStateMachine
 from controller.state import ControllerState, ControllerStateFactory
 from shared.models.objects import Test
 import pickle
+from os import path
+from controller.settings import app_settings
 
 class ActiveStateMachines:
     _active_state_machines: Dict[UUID, TestStateMachine] = {}
+    _persist_path = path.join(app_settings.file_state_path, app_settings.statemachines_file)
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
@@ -28,13 +31,13 @@ class ActiveStateMachines:
         self.logger.debug(f"Removing state machine for test {test_id}")
         self._active_state_machines.pop(test_id, None)
 
-    def persist_to_file(self, filename: str):
-        with open(filename, 'wb') as f:
+    def persist_to_file(self):
+        with open(self._persist_path, 'wb') as f:
             pickle.dump(self, f)
 
-    def load_from_file(self, filename: str):
+    def load_from_file(self):
         try:
-            with open(filename, "rb") as f:
+            with open(self._persist_path, "rb") as f:
                 state = pickle.load(f)
                 self.__dict__.update(state.__dict__)
         except:
@@ -60,7 +63,7 @@ class ActiveStateMachines:
                 self.remove_state_machine(test_id)
             except Exception as ex:
                 self.logger.exception(f"Error removing state machine for test {test_id}: {ex}")
-        self.persist_to_file('statemachines.pkl')
+        self.persist_to_file()
 
 
 class ActiveStateMachinesFactory:
@@ -70,7 +73,7 @@ class ActiveStateMachinesFactory:
     def get_active_state_machines(cls) -> ActiveStateMachines:
         if not cls._active_state_machines:
             cls._active_state_machines = ActiveStateMachines()
-            cls._active_state_machines.load_from_file('statemachines.pkl')
+            cls._active_state_machines.load_from_file()
         return cls._active_state_machines
     
 ActiveStateMachinesDependency = Annotated[ActiveStateMachines, Depends(ActiveStateMachinesFactory.get_active_state_machines)]
