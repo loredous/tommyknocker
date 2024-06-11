@@ -43,7 +43,7 @@ class TestStateMachine(StateMachine):
         self.test = self.controller_state.get_test_by_id(self.test.id)
         self.test.started = datetime.datetime.utcnow()
         self.test.status = TestStatus.KNOCKING
-        self.controller_state.update_test(self.test)
+        self.controller_state.update_test(self.test.id, self.test)
     
     def knocking_complete(self) -> bool:
         tc_statuses = [self.controller_state.get_test_component_status_by_id(component_id) for component_id in self.test.component_status_ids]
@@ -54,7 +54,7 @@ class TestStateMachine(StateMachine):
     def on_enter_checking(self):
         self.test = self.controller_state.get_test_by_id(self.test.id)
         self.test.status = TestStatus.CHECKING
-        self.controller_state.update_test(self.test)
+        self.controller_state.update_test(self.test.id, self.test)
         self.populate_response_testcomponents()
     
     def populate_response_testcomponents(self):
@@ -82,7 +82,7 @@ class TestStateMachine(StateMachine):
             self.send("failed")
             self.test.ended = datetime.datetime.utcnow()
             self.test.status = TestStatus.FAILURE
-        self.controller_state.update_test(self.test)
+        self.controller_state.update_test(self.test.id, self.test)
         return self.test.status == TestStatus.SUCCESS
     
     def check_responses(self):

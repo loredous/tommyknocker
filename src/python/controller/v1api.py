@@ -260,7 +260,10 @@ def create_test(controller_state: ControllerStateDependency, active_state_machin
 @v1APIRouter.delete("/tests/{id}", tags=["Tests"])
 def delete_test(controller_state: ControllerStateDependency, active_state_machines: ActiveStateMachinesDependency, id: UUID) -> None:
     controller_state.delete_test(id)
-    active_state_machines.remove_state_machine(id)
+    try:
+        active_state_machines.remove_state_machine(id)
+    except:
+        pass
 
 @v1APIRouter.put("/tests/{id}/add_component_status/{status_id}", tags=["Tests"])
 def add_test_component_status(controller_state: ControllerStateDependency, id: UUID, status_id: UUID) -> StateObjects.Test:

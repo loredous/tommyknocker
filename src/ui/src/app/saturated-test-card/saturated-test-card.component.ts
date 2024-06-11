@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { SaturatedTest } from '../../interfaces';
 import { DatePipe, JsonPipe } from '@angular/common';
 import { ClarityModule } from '@clr/angular';
@@ -14,8 +14,13 @@ import { TestStatus } from '../../interfaces';
 })
 export class SaturatedTestCardComponent {
   @Input() test_data: SaturatedTest = {} as SaturatedTest;
+  @Output() delete = new EventEmitter<string>();
 
   public get TestStatus() {
     return TestStatus;
+  }
+
+  onDelete() {
+    this.delete.emit(this.test_data.test.id);
   }
 }

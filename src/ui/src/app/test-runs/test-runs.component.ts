@@ -21,8 +21,9 @@ export class TestRunsComponent implements OnInit {
   completed_tests: SaturatedTest[] = [];
   interval: any;
   create_opened: boolean = false;
-  create_test: Test = { id: "", knocker_id: "", configuration_id: "", status: TestStatus.PENDING, started: new Date(), ended: new Date(), component_status_ids: []};
-  knockers = [] as Knocker[];
+  knocker_id = '';
+  configuration_id = '';
+    knockers = [] as Knocker[];
   configurations = [] as TestConfiguration[];
   
   constructor(
@@ -63,12 +64,23 @@ export class TestRunsComponent implements OnInit {
 
   onSubmitAddTestRun() {
     this.create_opened = false;
-    this.testAPIService.createItem(this.create_test).subscribe(test => this.refreshData());
-    this.create_test = { id: "", knocker_id: "", configuration_id: "", status: TestStatus.PENDING, started: new Date(), ended: new Date(), component_status_ids: []} as Test;
+    this.testAPIService.createItem({ id: "", knocker_id: this.knocker_id, configuration_id: this.configuration_id, status: TestStatus.PENDING, started: new Date(), ended: new Date(), component_status_ids: []} as Test).subscribe(test => this.refreshData());
+    this.knocker_id = '';
+    this.configuration_id = '';
+    this.knockers = [] as Knocker[];
+    this.configurations = [] as TestConfiguration[];
+  }
+
+  onDeleteTestRun(id: string) {
+    this.testAPIService.deleteItem(id).subscribe(()=> {this.refreshData();})
+    
   }
 
   onCancelAddTestRun() {
-    this.create_test = { id: "", knocker_id: "", configuration_id: "", status: TestStatus.PENDING, started: new Date(), ended: new Date(), component_status_ids: []} as Test;
+    this.knocker_id = '';
+    this.configuration_id = '';
+    this.knockers = [] as Knocker[];
+    this.configurations = [] as TestConfiguration[];
     this.create_opened = false;
   }
 
