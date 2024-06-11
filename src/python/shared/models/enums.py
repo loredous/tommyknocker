@@ -8,6 +8,7 @@ class ResultType(int, Enum):
 
 class MonitorType(int, Enum):
     ELASTICSEARCH = 1
+    MOCK = 2
 
 class TestStatus(int, Enum):
     PENDING = 1

@@ -14,22 +14,25 @@
 
         {
             "name": "Python: Knocker Service",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/knocker/main.py",
+            "program": "${workspaceFolder}/src/python/knocker/main.py",
             "args": [
                 "-v",
                 "-c", "127.0.0.1",
                 "-p", "8000",
                 "-I", "00000000-0000-0000-0000-000000000001"
             ],
-            "cwd": "${workspaceFolder}/src",
+            "cwd": "${workspaceFolder}/src/python/",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src/python/"
+            }
         },
         {
             "name": "Python: FastAPI",
-            "type": "python",
+            "type": "debugpy",
             "request": "launch",
             "module": "uvicorn",
             "args": [
@@ -37,12 +40,12 @@
                 "--reload"
             ],
             "env": {
-                "seed_for_testing": "1",
-                "debug": "1"
+                "debug": "1",
+                "state_type": "file"
             },
             "jinja": true,
             "justMyCode": true,
-            "cwd": "${workspaceFolder}/src"
+            "cwd": "${workspaceFolder}/src/python/"
         }
     ]
 }

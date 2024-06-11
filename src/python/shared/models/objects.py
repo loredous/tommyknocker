@@ -8,14 +8,23 @@ from shared.models.dbobjects import DBKnock, DBKnocker, DBMonitor, DBResponse, D
 
 from shared.models.enums import ComponentStatus, ComponentType, MonitorType, ResultType, TestStatus
 
+class NotUpdated:
+    pass
+
 class Updateable(object):
     def update(self, new):
         for key, value in asdict(new).items():
-            if hasattr(self, key):
+            if value is not NotUpdated and hasattr(self, key):
                 setattr(self, key, value)
 
     def clone_with_updates(self, new):
-        clone = self.__class__(**asdict(self))
+        self_dict = asdict(self)
+        clone = self.__class__(**self_dict)
+        new_dict = asdict(new)
+        for key, value in self_dict.items():
+            if new_dict.get(key, NotUpdated) is NotUpdated:
+                new_dict[key] = value
+        new = self.__class__(**new_dict)
         clone.update(new)
         return clone
 

@@ -2,13 +2,14 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from typing import Dict, List
 from uuid import UUID
+import asyncio
+import pickle
+from controller.settings import app_settings
 
-from fastapi import Response
 
-
-from shared.models.objects import Knock, Knocker, Runner, Monitor, ResponseExpectation, Test, TestComponentStatus, TestConfiguration, TestSuite, Result
+from shared.models.objects import Knock, Knocker, Runner, Monitor, ResponseExpectation, Test, TestComponentStatus, TestConfiguration, TestSuite, Result, Response
+import shared.models.apiobjects as APIOjbects
 from controller.errors import DuplicateException, NotFoundException
-from shared.models.apiobjects import UpdatedTestComponentStatus
 from shared.models.enums import ResultType, TestStatus
 
 class ControllerState(ABC):
@@ -206,7 +207,7 @@ class ControllerState(ABC):
         raise NotImplementedError
     
     @abstractmethod
-    def update_test_component_status(self, test_component_id: UUID, test_component_status: UpdatedTestComponentStatus)  -> TestComponentStatus:
+    def update_test_component_status(self, test_component_id: UUID, test_component_status: APIOjbects.UpdatedTestComponentStatus)  -> TestComponentStatus:
         raise NotImplementedError
     
     @abstractmethod
@@ -298,14 +299,15 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"Knocker with id {id} not found")
     
-    def create_knocker(self, knocker: Knocker) -> Knocker:
-        if knocker.id in self._knockers:
-            raise DuplicateException(f"Knocker with id {knocker.id} already exists")
+    def create_knocker(self, knocker: APIOjbects.NewKnocker) -> Knocker:
+        new_knocker = Knocker(**knocker.__dict__)
+        if new_knocker.id in self._knockers:
+            raise DuplicateException(f"Knocker with id {new_knocker.id} already exists")
         else:
-            self._knockers[knocker.id] = knocker
-            return knocker
+            self._knockers[new_knocker.id] = new_knocker
+            return new_knocker
 
-    def update_knocker(self, id: UUID, knocker: Knocker) -> Knocker:
+    def update_knocker(self, id: UUID, knocker: APIOjbects.UpdatedKnocker) -> Knocker:
         if id in self._knockers:
             self._knockers[id].update(knocker)
             return self._knockers[id]
@@ -345,21 +347,22 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"Knock with id {id} not found")
     
-    def create_knock(self, knock: Knock) -> Knock:
-        if knock.id in self._knocks:
-            raise DuplicateException(f"Knock with id {knock.id} already exists")
-        self.validate_knock_relationships(knock)
-        self._knocks[knock.id] = knock
-        return knock
+    def create_knock(self, knock: APIOjbects.NewKnock) -> Knock:
+        new_knock = Knock(**knock.__dict__)
+        if new_knock.id in self._knocks:
+            raise DuplicateException(f"Knock with id {new_knock.id} already exists")
+        self.validate_knock_relationships(new_knock)
+        self._knocks[new_knock.id] = new_knock
+        return new_knock
     
-    def update_knock(self, knock: Knock) -> Knock:
-        if knock.id in self._knocks:
-            updated = self._knocks[knock.id].clone_with_updates(knock)
+    def update_knock(self, id: UUID, knock: APIOjbects.UpdatedKnock) -> Knock:
+        if id in self._knocks:
+            updated = self._knocks[id].clone_with_updates(knock)
             self.validate_knock_relationships(updated)
-            self._knocks[knock.id] = updated
-            return self._knocks[knock.id]
+            self._knocks[id] = updated
+            return self._knocks[id]
         else:
-            raise NotFoundException(f"Knock with id {knock.id} not found")
+            raise NotFoundException(f"Knock with id {id} not found")
     
     def delete_knock(self, id: UUID) -> None:
         if id in self._knocks:
@@ -381,18 +384,19 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"Runner with id {id} not found")
 
-    def create_runner(self, runner: Runner) -> Runner:
-        if runner.id in self._runners:
-            raise DuplicateException(f"Runner with id {runner.id} already exists")
-        self._runners[runner.id] = runner
-        return runner
+    def create_runner(self, runner: APIOjbects.NewRunner) -> Runner:
+        new_runner = Runner(**runner.__dict__)
+        if new_runner.id in self._runners:
+            raise DuplicateException(f"Runner with id {new_runner.id} already exists")
+        self._runners[new_runner.id] = new_runner
+        return new_runner
 
-    def update_runner(self, runner: Runner) -> Runner:
-        if runner.id in self._runners:
-            self._runners[runner.id] = runner
-            return self._runners[runner.id]
+    def update_runner(self, id: UUID, runner: APIOjbects.UpdatedRunner) -> Runner:
+        if id in self._runners:
+            self._runners[id].update(runner)
+            return self._runners[id]
         else:
-            raise NotFoundException(f"Runner with id {runner.id} not found")
+            raise NotFoundException(f"Runner with id {id} not found")
 
     def delete_runner(self, id: UUID) -> None:
         if id in self._runners:
@@ -414,18 +418,19 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"Result with id {id} not found")
 
-    def create_result(self, result: Result) -> Result:
-        if result.id in self._results:
-            raise DuplicateException(f"Result with id {result.id} already exists")
-        self._results[result.id] = result
-        return result
+    def create_result(self, result: APIOjbects.NewResult) -> Result:
+        new_result = Result(**result.__dict__)
+        if new_result.id in self._results:
+            raise DuplicateException(f"Result with id {new_result.id} already exists")
+        self._results[new_result.id] = new_result
+        return new_result
 
-    def update_result(self, result: Result) -> Result:
-        if result.id in self._results:
-            self._results[result.id] = result
-            return self._results[result.id]
+    def update_result(self, id: UUID, result: APIOjbects.UpdatedResult) -> Result:
+        if id in self._results:
+            self._results[id].update(result)
+            return self._results[id]
         else:
-            raise NotFoundException(f"Result with id {result.id} not found")
+            raise NotFoundException(f"Result with id {id} not found")
 
     def delete_result(self, id: UUID) -> None:
         if id in self._results:
@@ -446,18 +451,19 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"Monitor with id {id} not found")
 
-    def create_monitor(self, monitor: Monitor) -> Monitor:
-        if monitor.id in self._monitors:
-            raise DuplicateException(f"Monitor with id {monitor.id} already exists")
-        self._monitors[monitor.id] = monitor
-        return monitor
+    def create_monitor(self, monitor: APIOjbects.NewMonitor) -> Monitor:
+        new_monitor = Monitor(**monitor.__dict__)
+        if new_monitor.id in self._monitors:
+            raise DuplicateException(f"Monitor with id {new_monitor.id} already exists")
+        self._monitors[new_monitor.id] = new_monitor
+        return new_monitor
 
-    def update_monitor(self, monitor: Monitor) -> Monitor:
-        if monitor.id in self._monitors:
-            self._monitors[monitor.id] = monitor
-            return self._monitors[monitor.id]
+    def update_monitor(self, id: UUID, monitor: APIOjbects.UpdatedMonitor) -> Monitor:
+        if id in self._monitors:
+            self._monitors[id].update(monitor)
+            return self._monitors[id]
         else:
-            raise NotFoundException(f"Monitor with id {monitor.id} not found")
+            raise NotFoundException(f"Monitor with id {id} not found")
 
     def delete_monitor(self, id: UUID) -> None:
         if id in self._monitors:
@@ -483,19 +489,20 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"Response with id {id} not found")
         
-    def create_response(self, response: Response) -> Response:
-        if response.id in self._responses:
-            raise DuplicateException(f"Response with id {response.id} already exists")
-        self.validate_response_relationships(response)
-        self._responses[response.id] = response
-        return response
+    def create_response(self, response: APIOjbects.NewResponse) -> Response:
+        new_response = Response(**response.__dict__)
+        if new_response.id in self._responses:
+            raise DuplicateException(f"Response with id {new_response.id} already exists")
+        self.validate_response_relationships(new_response)
+        self._responses[new_response.id] = new_response
+        return new_response
     
-    def update_response(self, response: Response) -> Response:
-        if response.id in self._responses:
-            updated = self._responses[response.id].clone_with_updates(response)
+    def update_response(self, id: UUID, response: APIOjbects.UpdatedResponse) -> Response:
+        if id in self._responses:
+            updated = self._responses[id].clone_with_updates(response)
             self.validate_response_relationships(updated)
-            self._responses[response.id] = updated
-            return self._responses[response.id]
+            self._responses[id] = updated
+            return self._responses[id]
         else:
             raise NotFoundException(f"Response with id {response.id} not found")
     
@@ -523,21 +530,22 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"ResponseExpectation with id {id} not found")
         
-    def create_response_expectation(self, response_expectation: ResponseExpectation) -> ResponseExpectation:
-        if response_expectation.id in self._response_expectations:
-            raise DuplicateException(f"ResponseExpectation with id {response_expectation.id} already exists")
-        self.validate_response_expectation_relationships(response_expectation)
-        self._response_expectations[response_expectation.id] = response_expectation
-        return response_expectation
+    def create_response_expectation(self, response_expectation: APIOjbects.NewResponseExpectation) -> ResponseExpectation:
+        new_response_expectation = ResponseExpectation(**response_expectation.__dict__)
+        if new_response_expectation.id in self._response_expectations:
+            raise DuplicateException(f"ResponseExpectation with id {new_response_expectation.id} already exists")
+        self.validate_response_expectation_relationships(new_response_expectation)
+        self._response_expectations[new_response_expectation.id] = new_response_expectation
+        return new_response_expectation
         
-    def update_response_expectation(self, response_expectation: ResponseExpectation) -> ResponseExpectation:
-        if response_expectation.id in self._response_expectations:
-            updated = self._response_expectations[response_expectation.id].clone_with_updates(response_expectation)
+    def update_response_expectation(self, id: UUID, response_expectation: APIOjbects.UpdatedResponseExpectation) -> ResponseExpectation:
+        if id in self._response_expectations:
+            updated = self._response_expectations[id].clone_with_updates(response_expectation)
             self.validate_response_expectation_relationships(updated)
-            self._response_expectations[response_expectation.id] = updated
-            return self._response_expectations[response_expectation.id]
+            self._response_expectations[id] = updated
+            return self._response_expectations[id]
         else:
-            raise NotFoundException(f"ResponseExpectation with id {response_expectation.id} not found")
+            raise NotFoundException(f"ResponseExpectation with id {id} not found")
         
     def delete_response_expectation(self, id: UUID) -> None:
         if id in self._response_expectations:
@@ -567,21 +575,22 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"TestConfiguration with id {id} not found")
     
-    def create_test_configuration(self, test_configuration: TestConfiguration) -> TestConfiguration:
-        if test_configuration.id in self._test_configurations:
-            raise DuplicateException(f"TestConfiguration with id {test_configuration.id} already exists")
-        self.validate_test_configuration_relationships(test_configuration)
-        self._test_configurations[test_configuration.id] = test_configuration
-        return test_configuration
+    def create_test_configuration(self, test_configuration: APIOjbects.NewTestConfiguration) -> TestConfiguration:
+        new_test_configuration = TestConfiguration(**test_configuration.__dict__)
+        if new_test_configuration.id in self._test_configurations:
+            raise DuplicateException(f"TestConfiguration with id {new_test_configuration.id} already exists")
+        self.validate_test_configuration_relationships(new_test_configuration)
+        self._test_configurations[new_test_configuration.id] = new_test_configuration
+        return new_test_configuration
     
-    def update_test_configuration(self, test_configuration: TestConfiguration) -> TestConfiguration:
-        if test_configuration.id in self._test_configurations:
-            updated = self._test_configurations[test_configuration.id].clone_with_updates(test_configuration)
+    def update_test_configuration(self, id: UUID, test_configuration: APIOjbects.UpdatedTestConfiguration) -> TestConfiguration:
+        if id in self._test_configurations:
+            updated = self._test_configurations[id].clone_with_updates(test_configuration)
             self.validate_test_configuration_relationships(updated)
-            self._test_configurations[test_configuration.id] = updated
-            return self._test_configurations[test_configuration.id]
+            self._test_configurations[id] = updated
+            return self._test_configurations[id]
         else:
-            raise NotFoundException(f"TestConfiguration with id {test_configuration.id} not found")
+            raise NotFoundException(f"TestConfiguration with id {id} not found")
         
     def delete_test_configuration(self, id: UUID) -> None:
         if id in self._test_configurations:
@@ -615,15 +624,16 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"TestComponentStatus with id {id} not found")
         
-    def create_test_component_status(self, test_component_status: TestComponentStatus) -> TestComponentStatus:
-        if test_component_status.id in self._test_component_statuses:
-            raise DuplicateException(f"TestComponentStatus with id {test_component_status.id} already exists")
-        test_component_status.updated = datetime.now()
-        self.validate_test_component_status_relationships(test_component_status)
-        self._test_component_statuses[test_component_status.id] = test_component_status
-        return test_component_status
+    def create_test_component_status(self, test_component_status: APIOjbects.NewTestComponentStatus) -> TestComponentStatus:
+        new_test_component_status = TestComponentStatus(**test_component_status.__dict__)
+        if new_test_component_status.id in self._test_component_statuses:
+            raise DuplicateException(f"TestComponentStatus with id {new_test_component_status.id} already exists")
+        new_test_component_status.updated = datetime.now()
+        self.validate_test_component_status_relationships(new_test_component_status)
+        self._test_component_statuses[new_test_component_status.id] = new_test_component_status
+        return new_test_component_status
     
-    def update_test_component_status(self, test_component_id: UUID, test_component_status: UpdatedTestComponentStatus) -> TestComponentStatus:
+    def update_test_component_status(self, test_component_id: UUID, test_component_status: APIOjbects.UpdatedTestComponentStatus) -> TestComponentStatus:
         if test_component_id in self._test_component_statuses:
             self._test_component_statuses[test_component_id].status = test_component_status.status
             self._test_component_statuses[test_component_id].updated = datetime.now()
@@ -670,21 +680,22 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"Test with id {id} not found")
     
-    def create_test(self, test: Test) -> Test:
-        if test.id in self._tests:
-            raise DuplicateException(f"Test with id {test.id} already exists")
-        self.validate_test_relationships(test)
-        self._tests[test.id] = test
-        return test
+    def create_test(self, test: APIOjbects.NewTest) -> Test:
+        new_test = Test(**test.__dict__)
+        if new_test.id in self._tests:
+            raise DuplicateException(f"Test with id {new_test.id} already exists")
+        self.validate_test_relationships(new_test)
+        self._tests[new_test.id] = new_test
+        return new_test
     
-    def update_test(self, test: Test) -> Test:
-        if test.id in self._tests:
-            updated = self._tests[test.id].clone_with_updates(test)
+    def update_test(self, id: UUID, test: APIOjbects.UpdatedTest) -> Test:
+        if id in self._tests:
+            updated = self._tests[id].clone_with_updates(test)
             self.validate_test_relationships(updated)
-            self._tests[test.id] = updated
-            return self._tests[test.id]
+            self._tests[id] = updated
+            return self._tests[id]
         else:
-            raise NotFoundException(f"Test with id {test.id} not found")
+            raise NotFoundException(f"Test with id {id} not found")
         
         
     def delete_test(self, id: UUID) -> None:
@@ -730,21 +741,22 @@ class InMemoryState(ControllerState):
         else:
             raise NotFoundException(f"TestSuite with id {id} not found")
         
-    def create_test_suite(self, test_suite: TestSuite) -> TestSuite:
-        if test_suite.id in self._test_suites:
-            raise DuplicateException(f"TestSuite with id {test_suite.id} already exists")
-        self.validate_test_suite_relationships(test_suite)
-        self._test_suites[test_suite.id] = test_suite
-        return test_suite
+    def create_test_suite(self, test_suite: APIOjbects.NewTestSuite) -> TestSuite:
+        new_test_suite = TestSuite(**test_suite.__dict__)
+        if new_test_suite.id in self._test_suites:
+            raise DuplicateException(f"TestSuite with id {new_test_suite.id} already exists")
+        self.validate_test_suite_relationships(new_test_suite)
+        self._test_suites[new_test_suite.id] = new_test_suite
+        return new_test_suite
     
-    def update_test_suite(self, test_suite: TestSuite) -> TestSuite:
-        if test_suite.id in self._test_suites:
-            updated = self._test_suites[test_suite.id].clone_with_updates(test_suite)
+    def update_test_suite(self, id: UUID, test_suite: APIOjbects.UpdatedTestSuite) -> TestSuite:
+        if id in self._test_suites:
+            updated = self._test_suites[id].clone_with_updates(test_suite)
             self.validate_test_suite_relationships(updated)
-            self._test_suites[test_suite.id] = updated
-            return self._test_suites[test_suite.id]
+            self._test_suites[id] = updated
+            return self._test_suites[id]
         else:
-            raise NotFoundException(f"TestSuite with id {test_suite.id} not found")
+            raise NotFoundException(f"TestSuite with id {id} not found")
     
     def delete_test_suite(self, id: UUID) -> None:
         if id in self._test_suites:
@@ -759,11 +771,39 @@ class InMemoryState(ControllerState):
         return [test for test in self._test_configurations.values() if not any(test.id in test_suite.test_configuration_ids for test_suite in self._test_suites.values())]
     #endregion TestSuite Management
 
+class PersistentInMemoryState(InMemoryState):
+    def __init__(self):
+        super().__init__()
+        self.load()
+        asyncio.get_running_loop().create_task(self.ongoing_save())
+
+    async def ongoing_save(self):
+        while True:
+            await asyncio.sleep(10)
+            await self.save()
+
+    async def save(self):
+        with open(app_settings.state_file, "wb") as f:
+            pickle.dump(self, f)
+
+    def load(self):
+        try:
+            with open(app_settings.state_file, "rb") as f:
+                state = pickle.load(f)
+                self.__dict__.update(state.__dict__)
+        except:
+            pass
+        
 class ControllerStateFactory:
     _state: ControllerState = None
+    _state_type: type = InMemoryState
+
+    @classmethod
+    def set_state_type(cls, state_type: type):
+        cls._state_type = state_type
 
     @classmethod
     def get_state(cls) -> ControllerState:
         if not cls._state:
-            cls._state = InMemoryState()
+            cls._state = cls._state_type()
         return cls._state

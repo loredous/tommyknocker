@@ -76,6 +76,12 @@ export class ResponseAPIService<Response> extends BaseAPIService<Response> {
 @Injectable({
   providedIn: 'root'
 })
+export class ResponseExpectationAPIService<ResponseExpectation> extends BaseAPIService<ResponseExpectation> {
+  override api_path = '/response-expectations'
+}
+@Injectable({
+  providedIn: 'root'
+})
 export class KnockAPIService<Knock> extends BaseAPIService<Knock> {
   override api_path = '/knocks';
 }

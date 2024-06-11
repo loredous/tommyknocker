@@ -1,26 +1,33 @@
 import { Component, Injector, OnInit, Type, ViewChild } from '@angular/core';
-import { ICrudApiService, KnockAPIService, KnockerAPIService, MonitorAPIService, ResponseAPIService, ResultAPIService, RunnerAPIService, TestConfigurationAPIService, TestSuiteAPIService } from '../../tommyknocker-api.service';
-import { NgFor, NgIf } from '@angular/common';
+import { ICrudApiService, KnockAPIService, KnockerAPIService, MonitorAPIService, ResponseAPIService, ResponseExpectationAPIService, ResultAPIService, RunnerAPIService, TestConfigurationAPIService, TestSuiteAPIService } from '../../tommyknocker-api.service';
+import { NgFor, NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
 import { ClarityModule } from "@clr/angular";
 import { FormsModule } from '@angular/forms';
 import {Clipboard} from '@angular/cdk/clipboard';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ClrDatagrid } from '@clr/angular';
+import { KvDisplayComponent, KvInputComponent } from './kv-handling.component';
+import { LookupDisplayComponent, LookupInputComponent, LookupMultiInputComponent } from './lookup-handling.component';
 
 enum InputType {
   Input,
   TextArea,
+  KeyValue,
+  Lookup,
+  MultiLookup
 }
 
 interface IColumn {
   name: string,
   title: string,
-  input_type?: InputType,
+  input_type: InputType,
   required?: boolean,
   updateable?: boolean,
   createable?: boolean,
   placeholder?: string,
-  copyable?: boolean
+  copyable?: boolean,
+  lookup_interface?: Type<ICrudApiService<any>>
+  value_field?: string
 }
 
 interface IManagementType {
@@ -39,7 +46,7 @@ const management_types: {[id: string]: IManagementType} = {
       { name: 'id', title: 'ID', input_type: InputType.Input, copyable: true},
       { name: 'name', title: 'Name', required: true, input_type: InputType.Input, updateable: true, placeholder: 'Name', createable: true},
       { name: 'description', title: 'Description', input_type: InputType.TextArea, required: false, updateable: true, placeholder: 'Description', createable: true},
-      { name: 'last_seen', title: 'Last Seen'}
+      { name: 'last_seen', title: 'Last Seen', input_type: InputType.Input}
     ],
     service: KnockerAPIService,
     empty_item: { id: '', name: '', description: '', last_seen: new Date() }
@@ -65,7 +72,7 @@ const management_types: {[id: string]: IManagementType} = {
       { name: 'name', title: 'Name', required: true, input_type: InputType.Input, updateable: true, placeholder: 'Name', createable: true},
       { name: 'description', title: 'Description', input_type: InputType.TextArea, required: false, updateable: true, placeholder: 'Description', createable: true},
       { name: 'type', title: 'Type', required: true, input_type: InputType.Input, updateable: true, placeholder: 'Type', createable: true},
-      { name: 'config', title: 'Config', input_type: InputType.TextArea, required: false, updateable: true, placeholder: 'Config', createable: true}
+      { name: 'config', title: 'Config', input_type: InputType.KeyValue, required: false, updateable: true, placeholder: 'Config', createable: true}
     ],
     service: MonitorAPIService,
     empty_item: { id: '', name: '', description: '', type: '', config: {} }
@@ -77,21 +84,22 @@ const management_types: {[id: string]: IManagementType} = {
       { name: 'id', title: 'ID', input_type: InputType.Input, copyable: true},
       { name: 'name', title: 'Name', required: true, input_type: InputType.Input, updateable: true, placeholder: 'Name', createable: true},
       { name: 'description', title: 'Description', input_type: InputType.TextArea, required: false, updateable: true, placeholder: 'Description', createable: true},
-      { name: 'monitor_id', title: 'Monitor ID', required: true, input_type: InputType.Input, updateable: true, placeholder: 'Monitor ID', createable: true},
-      { name: 'monitor_parameters', title: 'Monitor Parameters', input_type: InputType.TextArea, required: false, updateable: true, placeholder: 'Monitor Parameters', createable: true}
+      { name: 'monitor_id', title: 'Monitor', required: true, input_type: InputType.Lookup, lookup_interface: MonitorAPIService, updateable: true, placeholder: 'Monitor ID', createable: true},
+      { name: 'monitor_parameters', title: 'Monitor Parameters', input_type: InputType.KeyValue, required: false, updateable: true, placeholder: 'Monitor Parameters', createable: true}
     ],
     service: ResponseAPIService,
-    empty_item: { id: '', name: '', description: '', monitor_id: '', monitor_parameters: {} }
+    empty_item: { id: '', name: '', description: '', monitor_id: '', monitor_parameters: new Map<string, string>()}
   },
   knocks: {
     name: 'Knock',
     description: 'Knocks are the service components that are responsible for managing the knock process.',
     columns: [
+      { name: 'name', title: 'Name', required: true, input_type: InputType.Input, updateable: true, placeholder: 'Name', createable: true},
       { name: 'id', title: 'ID', input_type: InputType.Input, copyable: true},
-      { name: 'runner_id', title: 'Runner ID', required: true, input_type: InputType.Input, updateable: true, placeholder: 'Runner ID', createable: true},
+      { name: 'runner_id', title: 'Runner', required: true, input_type: InputType.Lookup,lookup_interface: RunnerAPIService, updateable: true, placeholder: 'Runner ID', createable: true},
       { name: 'command', title: 'Command', required: true, input_type: InputType.Input, updateable: true, placeholder: 'Command', createable: true},
       { name: 'description', title: 'Description', input_type: InputType.TextArea, required: false, updateable: true, placeholder: 'Description', createable: true},
-      { name: 'result_ids', title: 'Result IDs', input_type: InputType.TextArea, required: false, updateable: true, placeholder: 'Result IDs', createable: true}
+      { name: 'result_ids', title: 'Result IDs', input_type: InputType.MultiLookup, lookup_interface:ResultAPIService, value_field: 'id', required: false, updateable: true, placeholder: 'Result IDs', createable: true}
     ],
     service: KnockAPIService,
     empty_item: { id: '', runner_id: '', command: '', description: '', result_ids: [] }
@@ -114,7 +122,7 @@ const management_types: {[id: string]: IManagementType} = {
       { name: 'id', title: 'ID', input_type: InputType.Input, copyable: true},
       { name: 'name', title: 'Name', required: true, input_type: InputType.Input, updateable: true, placeholder: 'Name', createable: true},
       { name: 'description', title: 'Description', input_type: InputType.TextArea, required: false, updateable: true, placeholder: 'Description', createable: true},
-      { name: 'knock_ids', title: 'Knock IDs', input_type: InputType.TextArea, required: false, updateable: true, placeholder: 'Knock IDs', createable: true},
+      { name: 'knock_ids', title: 'Knocks', input_type: InputType.Lookup, lookup_interface: KnockAPIService, required: false, updateable: true, placeholder: 'Knock IDs', createable: true},
       { name: 'response_expectation_ids', title: 'Response Expectation IDs', input_type: InputType.TextArea, required: false, updateable: true, placeholder: 'Response Expectation IDs', createable: true}
     ],
     service: TestConfigurationAPIService,
@@ -127,17 +135,29 @@ const management_types: {[id: string]: IManagementType} = {
       { name: 'id', title: 'ID', input_type: InputType.Input, copyable: true},
       { name: 'name', title: 'Name', required: true, input_type: InputType.Input, updateable: true, placeholder: 'Name', createable: true},
       { name: 'description', title: 'Description', input_type: InputType.TextArea, required: false, updateable: true, placeholder: 'Description', createable: true},
-      { name: 'test_configuration_ids', title: 'Test Configuration IDs', input_type: InputType.TextArea, required: false, updateable: true, placeholder: 'Test Configuration IDs', createable: true}
+      { name: 'test_configuration_ids', title: 'Test Configurations', input_type: InputType.Lookup, lookup_interface: TestConfigurationAPIService, required: false, updateable: true, placeholder: 'Test Configuration IDs', createable: true}
     ],
     service: TestSuiteAPIService,
     empty_item: { id: '', configuration_id: '' }
+  },
+  response_expectations: {
+    name: 'Response Expectation',
+    description: 'Response expectations dictate if a response is expected or not, and the timeout allowed for that response to occur.',
+    columns: [
+      { name: 'id', title: 'ID', input_type: InputType.Input, copyable: true},
+      { name: 'response_id', title: "Response", input_type: InputType.Lookup, lookup_interface: ResponseAPIService, createable: true, updateable: true},
+      { name: 'expected', title: "Expected", input_type: InputType.Input, createable: true, updateable: true},
+      { name: 'timeout', title: "Timeout", input_type: InputType.Input, createable: true, updateable: true}
+    ],
+    service: ResponseExpectationAPIService,
+    empty_item: {id: '', response_id: '', expected: true, timeout: 60}
   }
 };
 
 @Component({
   selector: 'app-monitor-management',
   standalone: true,
-  imports: [NgFor, ClarityModule, FormsModule, NgIf],
+  imports: [NgFor, ClarityModule, FormsModule, NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault, KvDisplayComponent, KvInputComponent, LookupDisplayComponent, LookupInputComponent, LookupMultiInputComponent],
   templateUrl: './management.component.html',
   styleUrl: './management.component.css'
 })
@@ -198,12 +218,14 @@ export class ManagementComponent {
 
   editCancelled() {
     this.edit_opened = false;
+    this.active_item = this.management_type.empty_item;
     this.refreshData();
   }
 
   editSubmitted() {
     this.api.updateItem(this.active_item.id, this.active_item).subscribe(() => {
       this.edit_opened = false;
+      this.active_item = this.management_type.empty_item;
       this.refreshData();
     });
   }
@@ -215,12 +237,14 @@ export class ManagementComponent {
 
   createCancelled() {
     this.create_opened = false;
+    this.active_item = this.management_type.empty_item;
     this.refreshData();
   }
 
   createSubmitted() {
     this.api.createItem(this.active_item).subscribe(() => {
       this.create_opened = false;
+      this.active_item = this.management_type.empty_item;
       this.refreshData();
     });
   }

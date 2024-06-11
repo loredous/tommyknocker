@@ -22,7 +22,7 @@ export interface Monitor {
     name: string,
     description?: string,
     type: string,
-    config?: MonitorConfig[]
+    config: MonitorConfig[]
 }
 
 export interface ResponseMonitorParameters {
@@ -34,10 +34,11 @@ export interface Response {
     name: string,
     description: string,
     monitor_id: string,
-    monitor_parameters: ResponseMonitorParameters
+    monitor_parameters: ResponseMonitorParameters[],
 }
 
 export interface Knock {
+    name: string,
     id: string,
     runner_id: string,
     command: string,

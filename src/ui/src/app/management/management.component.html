@@ -1,93 +1,132 @@
+<p cds-text="headline">{{ management_type.name }} Management
+  <clr-tooltip>
+    <cds-icon clrTooltipTrigger shape="info-standard"></cds-icon>
+    <clr-tooltip-content [clrPosition]="'bottom-right'" [clrSize]="'lg'">
+      {{ management_type.description }}
+    </clr-tooltip-content>
+  </clr-tooltip>
+</p>
+<clr-datagrid>
+  <clr-dg-column *ngFor="let column of management_type.columns">{{column.title}}</clr-dg-column>
+  <clr-dg-row *ngFor="let item of items">
+    <clr-dg-action-overflow>
+      <button class="action-item" (click)="onEdit(item)">Edit</button>
+      <button class="action-item" (click)="onDelete(item)">Delete</button>
+    </clr-dg-action-overflow>
+    <clr-dg-cell *ngFor="let column of management_type.columns">
+      <ng-container [ngSwitch]="column.input_type">
+        <div *ngSwitchDefault>{{ item[column.name] }} <cds-icon shape="copy-to-clipboard"
+            (click)="onCopy(item, column.name)" *ngIf="column.copyable"></cds-icon></div>
+        <div *ngSwitchCase="InputType.KeyValue"><app-kv-display [value]="item[column.name]"></app-kv-display></div>
+        <div *ngSwitchCase="InputType.Lookup"><app-lookup-display *ngIf="column.lookup_interface != null" [object_id]="item[column.name]" [API]="column.lookup_interface"></app-lookup-display></div>
+      </ng-container>
+    </clr-dg-cell>
+  </clr-dg-row>
 
-<p cds-text="headline">{{ management_type.name }} Management 
-    <clr-tooltip>
-        <cds-icon clrTooltipTrigger shape="info-standard"></cds-icon>
-        <clr-tooltip-content [clrPosition]="'bottom-right'" [clrSize]="'lg'">
-          {{ management_type.description }}
-        </clr-tooltip-content>
-      </clr-tooltip>
-    </p>
-    <clr-datagrid>
-        <clr-dg-column *ngFor="let column of management_type.columns">{{column.title}}</clr-dg-column>
-        <clr-dg-row *ngFor="let item of items">
-        <clr-dg-action-overflow>
-            <button class="action-item" (click)="onEdit(item)">Edit</button>
-            <button class="action-item" (click)="onDelete(item)">Delete</button>
-        </clr-dg-action-overflow>
-        <clr-dg-cell *ngFor="let column of management_type.columns">{{ item[column.name] }} <cds-icon shape="copy-to-clipboard" (click)="onCopy(item, column.name)" *ngIf="column.copyable"></cds-icon></clr-dg-cell>  
-        </clr-dg-row>
-      
-        <clr-dg-footer>{{ items.length }} {{ management_type.name }}s</clr-dg-footer>
-      </clr-datagrid>
-      <button class="btn btn-primary" (click)="onCreate()">New +</button>
-    
-      <clr-modal [(clrModalOpen)]="edit_opened" [clrModalClosable]="false">
-        <h3 class="modal-title">Edit {{ management_type.name }} {{ active_item.name }}</h3>
-        <div class="modal-body">
-            <form clrForm>
-              <div *ngFor="let column of management_type.columns">
-                <div *ngIf="column.updateable">
-                  <ng-container *ngIf="column.input_type === InputType.TextArea; then textareaTemplate else inputTemplate"></ng-container>
-                  <ng-template #inputTemplate>
-                    <clr-input-container>
-                      <label>{{ column.title }}</label>
-                      <input clrInput placeholder="{{ column.placeholder }}" name="{{ column.name }}" [(ngModel)]="active_item[column.name]"/>
-                    </clr-input-container>
-                  </ng-template>
-                  
-                  <ng-template #textareaTemplate>
-                    <clr-textarea-container>
-                      <label>{{ column.title }}</label>
-                      <textarea clrTextarea name="{{ column.name }}" [(ngModel)]="active_item[column.name]"></textarea>
-                    </clr-textarea-container>
-                  </ng-template>
+  <clr-dg-footer>{{ items.length }} {{ management_type.name }}s</clr-dg-footer>
+</clr-datagrid>
+<button class="btn btn-primary" (click)="onCreate()">New +</button>
 
-
-                </div>
-              </div>
-            </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger" (click)="editCancelled()">
-            Cancel
-          </button>
-        <button type="submit" class="btn btn-primary" (click)="editSubmitted()">
-          Submit
-        </button>
-        </div>
-      </clr-modal>
-    
-      <clr-modal [(clrModalOpen)]="create_opened" [clrModalClosable]="false">
-        <h3 class="modal-title">Create {{ management_type.name }}</h3>
-        <div class="modal-body">
-          <form clrForm>
-            <div *ngFor="let column of management_type.columns">
-              <div *ngIf="column.createable">
-                <ng-container *ngIf="column.input_type === InputType.TextArea; then textareaTemplate else inputTemplate"></ng-container>
-                <ng-template #inputTemplate>
-                  <clr-input-container>
-                    <label>{{ column.title }}</label>
-                    <input clrInput placeholder="{{ column.placeholder }}" name="{{ column.name }}" [(ngModel)]="active_item[column.name]"/>
-                  </clr-input-container>
-                </ng-template>
-                
-                <ng-template #textareaTemplate>
-                  <clr-textarea-container>
-                    <label>{{ column.title }}</label>
-                    <textarea clrTextarea name="{{ column.name }}" [(ngModel)]="active_item[column.name]"></textarea>
-                  </clr-textarea-container>
-                </ng-template>
-              </div>
+<clr-modal [(clrModalOpen)]="edit_opened" [clrModalClosable]="false">
+  <h3 class="modal-title">Edit {{ management_type.name }} {{ active_item.name }}</h3>
+  <div class="modal-body">
+    <form clrForm>
+      <div *ngFor="let column of management_type.columns">
+        <div *ngIf="column.updateable">
+          <ng-container [ngSwitch]="column.input_type">
+            <div *ngSwitchDefault>
+              <clr-input-container>
+                <label>{{ column.title }}</label>
+                <input clrInput placeholder="{{ column.placeholder }}" name="{{ column.name }}"
+                  [(ngModel)]="active_item[column.name]" />
+              </clr-input-container>
             </div>
-          </form>
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-danger" (click)="createCancelled()">
-            Cancel
-          </button>
-        <button type="submit" class="btn btn-primary" (click)="createSubmitted()">
-          Submit
-        </button>
-        </div>
-      </clr-modal>
 
+            <div *ngSwitchCase="InputType.TextArea">
+              <clr-textarea-container>
+                <label>{{ column.title }}</label>
+                <textarea clrTextarea name="{{ column.name }}" [(ngModel)]="active_item[column.name]"></textarea>
+              </clr-textarea-container>
+            </div>
+
+            <div *ngSwitchCase="InputType.KeyValue">
+              <app-kv-input [value]="active_item[column.name]" [label]="column.title"></app-kv-input>
+            </div>
+
+            <div *ngSwitchCase="InputType.Lookup">
+              <label>{{ column.title }}</label>
+              <app-lookup-input *ngIf="column.lookup_interface != null" 
+                [API]="column.lookup_interface" (selectedOption)="active_item[column.name] = $event"></app-lookup-input>
+            </div>
+
+            <div *ngSwitchCase="InputType.MultiLookup">
+              <label>{{ column.title }}</label>
+              <app-lookup-multiinput *ngIf="column.lookup_interface != null" 
+                [API]="column.lookup_interface" (selectedOption)="active_item[column.name] = $event" (value_field)="column.value_field"></app-lookup-multiinput>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-danger" (click)="editCancelled()">
+      Cancel
+    </button>
+    <button type="submit" class="btn btn-primary" (click)="editSubmitted()">
+      Submit
+    </button>
+  </div>
+</clr-modal>
+
+<clr-modal [(clrModalOpen)]="create_opened" [clrModalClosable]="false">
+  <h3 class="modal-title">Create {{ management_type.name }}</h3>
+  <div class="modal-body">
+    <form clrForm>
+      <div *ngFor="let column of management_type.columns">
+        <div *ngIf="column.createable">
+          <ng-container [ngSwitch]="column.input_type">
+          <ng-container *ngSwitchDefault>
+            <clr-input-container>
+              <label>{{ column.title }}</label>
+              <input clrInput placeholder="{{ column.placeholder }}" name="{{ column.name }}"
+                [(ngModel)]="active_item[column.name]" />
+            </clr-input-container>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="InputType.TextArea">
+            <clr-textarea-container>
+              <label>{{ column.title }}</label>
+              <textarea clrTextarea name="{{ column.name }}" [(ngModel)]="active_item[column.name]"></textarea>
+            </clr-textarea-container>
+          </ng-container>
+
+          <ng-container *ngSwitchCase="InputType.KeyValue">
+            <app-kv-input [value]="active_item[column.name]" [label]="column.title"></app-kv-input>
+          </ng-container>
+
+          <div *ngSwitchCase="InputType.Lookup">
+            <label>{{ column.title }}</label>
+            <app-lookup-input *ngIf="column.lookup_interface != null" 
+              [API]="column.lookup_interface" (selectedOption)="active_item[column.name] = $event"></app-lookup-input>
+          </div>
+
+          <div *ngSwitchCase="InputType.MultiLookup">
+            <label>{{ column.title }}</label>
+            <app-lookup-multiinput *ngIf="column.lookup_interface != null" 
+              [API]="column.lookup_interface" (selectedOption)="active_item[column.name] = $event" [value_field]="column.value_field ?? 'name'"></app-lookup-multiinput>
+          </div>
+        </ng-container>
+        </div>
+      </div>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-danger" (click)="createCancelled()">
+      Cancel
+    </button>
+    <button type="submit" class="btn btn-primary" (click)="createSubmitted()">
+      Submit
+    </button>
+  </div>
+</clr-modal>
