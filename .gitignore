@@ -188,3 +188,4 @@ testem.log
 Thumbs.db
 
 src/python/state.pkl
+src/python/statemachines.pkl

@@ -25,7 +25,10 @@
             ],
             "cwd": "${workspaceFolder}/src/python/",
             "console": "integratedTerminal",
-            "justMyCode": true
+            "justMyCode": true,
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}/src/python/"
+            }
         },
         {
             "name": "Python: FastAPI",

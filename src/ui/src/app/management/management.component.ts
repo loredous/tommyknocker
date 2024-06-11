@@ -1,5 +1,5 @@
 import { Component, Injector, OnInit, Type, ViewChild } from '@angular/core';
-import { ICrudApiService, KnockAPIService, KnockerAPIService, MonitorAPIService, ResponseAPIService, ResultAPIService, RunnerAPIService, TestConfigurationAPIService, TestSuiteAPIService } from '../../tommyknocker-api.service';
+import { ICrudApiService, KnockAPIService, KnockerAPIService, MonitorAPIService, ResponseAPIService, ResponseExpectationAPIService, ResultAPIService, RunnerAPIService, TestConfigurationAPIService, TestSuiteAPIService } from '../../tommyknocker-api.service';
 import { NgFor, NgIf, NgSwitch, NgSwitchCase, NgSwitchDefault } from '@angular/common';
 import { ClarityModule } from "@clr/angular";
 import { FormsModule } from '@angular/forms';
@@ -139,6 +139,18 @@ const management_types: {[id: string]: IManagementType} = {
     ],
     service: TestSuiteAPIService,
     empty_item: { id: '', configuration_id: '' }
+  },
+  response_expectations: {
+    name: 'Response Expectation',
+    description: 'Response expectations dictate if a response is expected or not, and the timeout allowed for that response to occur.',
+    columns: [
+      { name: 'id', title: 'ID', input_type: InputType.Input, copyable: true},
+      { name: 'response_id', title: "Response", input_type: InputType.Lookup, lookup_interface: ResponseAPIService, createable: true, updateable: true},
+      { name: 'expected', title: "Expected", input_type: InputType.Input, createable: true, updateable: true},
+      { name: 'timeout', title: "Timeout", input_type: InputType.Input, createable: true, updateable: true}
+    ],
+    service: ResponseExpectationAPIService,
+    empty_item: {id: '', response_id: '', expected: true, timeout: 60}
   }
 };
 

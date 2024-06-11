@@ -7,7 +7,7 @@ from fastapi import Depends
 from controller.statemachines import TestStateMachine
 from controller.state import ControllerState, ControllerStateFactory
 from shared.models.objects import Test
-import warnings
+import pickle
 
 class ActiveStateMachines:
     _active_state_machines: Dict[UUID, TestStateMachine] = {}
@@ -27,6 +27,18 @@ class ActiveStateMachines:
     def remove_state_machine(self, test_id: UUID) -> None:
         self.logger.debug(f"Removing state machine for test {test_id}")
         self._active_state_machines.pop(test_id, None)
+
+    def persist_to_file(self, filename: str):
+        with open(filename, 'wb') as f:
+            pickle.dump(self, f)
+
+    def load_from_file(self, filename: str):
+        try:
+            with open(filename, "rb") as f:
+                state = pickle.load(f)
+                self.__dict__.update(state.__dict__)
+        except:
+            pass
 
     async def cycle_state_machines(self) -> None:
         to_remove = []
@@ -48,6 +60,7 @@ class ActiveStateMachines:
                 self.remove_state_machine(test_id)
             except Exception as ex:
                 self.logger.exception(f"Error removing state machine for test {test_id}: {ex}")
+        self.persist_to_file('statemachines.pkl')
 
 
 class ActiveStateMachinesFactory:
@@ -57,6 +70,7 @@ class ActiveStateMachinesFactory:
     def get_active_state_machines(cls) -> ActiveStateMachines:
         if not cls._active_state_machines:
             cls._active_state_machines = ActiveStateMachines()
+            cls._active_state_machines.load_from_file('statemachines.pkl')
         return cls._active_state_machines
     
 ActiveStateMachinesDependency = Annotated[ActiveStateMachines, Depends(ActiveStateMachinesFactory.get_active_state_machines)]
